@@ -1,6 +1,11 @@
 ---
 name: skill-creator
 description: Create or update AgentSkills with scripts, references, and assets. Use when designing, structuring, or packaging skills.
+version: 1.0.0
+owner: engineering-flow-platform
+triggers:
+  - /skill-creator
+  - create or package a skill
 metadata:
   emoji: 🛠️
   requires:
