@@ -65,6 +65,12 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     errors: list[str] = []
+
+    nested_skills_dir = root / "skills"
+    if nested_skills_dir.exists():
+        errors.append(
+            "nested skills/ directory is not allowed; repository root must be the skills root"
+        )
     skill_dirs = []
     names: dict[str, Path] = {}
 

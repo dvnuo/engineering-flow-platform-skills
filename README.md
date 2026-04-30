@@ -67,3 +67,4 @@ The script verifies:
 - `skill.md` includes required frontmatter fields
 - skill names are unique
 - referenced files listed in frontmatter `references` exist (best-effort)
+- validator fails if a nested `skills/` directory is present
