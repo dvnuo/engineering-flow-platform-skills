@@ -147,12 +147,7 @@ def discover_skill_files(root: Path, errors: list[str]) -> tuple[list[Path], lis
     return skill_dirs, skill_files
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--opencode-compatible", action="store_true")
-    args = parser.parse_args(argv)
-
-    root = Path(__file__).resolve().parents[1]
+def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, list[str], dict[str, int]]:
     errors: list[str] = []
 
     nested_skills_dir = root / "skills"
@@ -202,7 +197,7 @@ def main(argv: list[str] | None = None) -> int:
                 if not ref_path.exists():
                     errors.append(f"{rel}: reference not found: {ref}")
 
-        if args.opencode_compatible:
+        if opencode_compatible:
             if not str(data.get("description", "")).strip():
                 errors.append(f"{rel}: missing or empty 'description'")
 
@@ -230,27 +225,46 @@ def main(argv: list[str] | None = None) -> int:
                     if not str(item).strip():
                         errors.append(f"{rel}: '{field}' contains empty item")
 
-    total_skill_md = sum(1 for d in skill_dirs if (d / "skill.md").exists())
-    total_python_backed = sum(1 for d in skill_dirs if (d / "skill.py").exists())
+    stats = {
+        "total_skill_directories": len(skill_dirs),
+        "total_skill_md_discovered": sum(1 for d in skill_dirs if (d / "skill.md").exists()),
+        "python_backed_skills_count": sum(1 for d in skill_dirs if (d / "skill.py").exists()),
+        "opencode_compatible_enabled": int(opencode_compatible),
+        "opencode_normalized_skill_names": len(normalized_names),
+    }
 
-    print(f"total skill directories: {len(skill_dirs)}")
-    print(f"total skill.md discovered: {total_skill_md}")
-    print(f"python-backed skills count: {total_python_backed}")
+    exit_code = 1 if errors else 0
+    return exit_code, errors, stats
+
+
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--opencode-compatible", action="store_true")
+    args = parser.parse_args(argv)
+
+    root = Path(__file__).resolve().parents[1]
+    exit_code, errors, stats = validate_root(root, opencode_compatible=args.opencode_compatible)
+
+    print(f"total skill directories: {stats['total_skill_directories']}")
+    print(f"total skill.md discovered: {stats['total_skill_md_discovered']}")
+    print(f"python-backed skills count: {stats['python_backed_skills_count']}")
     print(
         "opencode-compatible checks: "
         + ("enabled" if args.opencode_compatible else "disabled")
     )
     if args.opencode_compatible:
-        print(f"opencode normalized skill names: {len(normalized_names)}")
+        print(f"opencode normalized skill names: {stats['opencode_normalized_skill_names']}")
 
     if errors:
         print("\nValidation errors:")
         for err in errors:
             print(f"- {err}")
-        return 1
+        return exit_code
 
     print("\nValidation passed.")
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":
