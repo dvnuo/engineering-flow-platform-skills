@@ -59,6 +59,7 @@ Run:
 
 ```bash
 python scripts/validate_skills.py
+python scripts/validate_skills.py --opencode-compatible
 ```
 
 The script verifies:
@@ -68,3 +69,6 @@ The script verifies:
 - skill names are unique
 - referenced files listed in frontmatter `references` exist (best-effort)
 - validator fails if a nested `skills/` directory is present
+
+
+OpenCode compatibility mode (`--opencode-compatible`) adds normalized-name collision checks and validates `tools`/`task_tools` list typing. Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
