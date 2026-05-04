@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from scripts.validate_skills import (
+    main,
     normalize_opencode_name,
     parse_frontmatter,
     validate_root,
@@ -170,3 +171,87 @@ tools: []
 
     assert exit_code == 0
     assert errors == []
+
+
+def test_current_repository_passes_t13_opencode_validation() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    exit_code, errors, stats = validate_root(repo_root, opencode_compatible=True)
+
+    assert exit_code == 0, "\n".join(errors)
+    assert errors == []
+    assert stats["total_skill_directories"] >= 1
+    assert stats["total_skill_md_discovered"] >= 1
+    assert stats["opencode_compatible_enabled"] == 1
+    assert stats["opencode_normalized_skill_names"] >= 1
+
+
+def test_validate_root_rejects_nested_skills_directory(tmp_path: Path) -> None:
+    (tmp_path / "skills").mkdir()
+
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+
+    assert exit_code == 1
+    assert any("nested skills/ directory is not allowed" in err for err in errors)
+
+
+def test_validate_root_rejects_generated_opencode_artifacts(tmp_path: Path) -> None:
+    (tmp_path / ".opencode").mkdir()
+    (tmp_path / "skills-index.json").write_text("{}", encoding="utf-8")
+
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+
+    assert exit_code == 1
+    assert any("generated OpenCode artifacts" in err for err in errors)
+    assert any("skills-index.json" in err for err in errors)
+
+
+def test_validate_root_counts_legacy_root_markdown_skill(tmp_path: Path) -> None:
+    (tmp_path / "legacy.md").write_text(
+        """---
+name: legacy-skill
+description: legacy root skill
+version: 1.0.0
+owner: test
+triggers:
+  - legacy
+tools: []
+---
+Body
+""",
+        encoding="utf-8",
+    )
+
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+
+    assert exit_code == 0
+    assert errors == []
+    assert stats["total_skill_directories"] == 0
+    assert stats["total_skill_md_discovered"] == 1
+    assert stats["opencode_normalized_skill_names"] == 1
+
+
+def test_main_accepts_explicit_root(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path,
+        "ok",
+        """---
+name: ok
+description: ok
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+---
+Body
+""",
+    )
+
+    assert main(["--root", str(tmp_path), "--opencode-compatible"]) == 0
+
+
+def test_main_returns_2_for_missing_root(tmp_path: Path) -> None:
+    missing = tmp_path / "missing"
+
+    assert main(["--root", str(missing), "--opencode-compatible"]) == 2
