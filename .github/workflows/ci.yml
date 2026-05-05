@@ -29,8 +29,14 @@ jobs:
       - name: Validate OpenCode compatibility
         run: python scripts/validate_skills.py --opencode-compatible
 
+      - name: Validate OpenCode integration fixtures
+        run: python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
+
       - name: Run tests
         run: python -m pytest -q
+
+      - name: Run skills smoke script
+        run: integration/scripts/smoke_skills.sh
 
       - name: Ensure generated OpenCode artifacts are not committed
         run: |

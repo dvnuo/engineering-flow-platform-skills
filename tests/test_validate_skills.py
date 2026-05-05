@@ -438,6 +438,28 @@ opencode:
     assert any("unsupported OpenCode skill must use opencode.permission.default=deny" in err for err in errors)
 
 
+def test_validate_root_rejects_invalid_opencode_capability_tags(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-tags", """---
+name: bad-tags
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags: []
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.capability_tags must be a non-empty list of strings" in err for err in errors)
+
+
 def test_integration_fixture_passes_opencode_validation() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     fixture_root = repo_root / "integration" / "fixtures"

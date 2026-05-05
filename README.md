@@ -97,6 +97,13 @@ triggers:
   - natural language trigger
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 Body instructions...
 ```
@@ -120,7 +127,20 @@ The script verifies:
 - validator fails if a nested `skills/` directory is present
 
 
-OpenCode compatibility mode (`--opencode-compatible`) adds normalized-name collision checks and validates `tools`/`task_tools` list typing. Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
+OpenCode compatibility mode (`--opencode-compatible`) also verifies:
+
+- normalized OpenCode skill-name collisions
+- `tools`/`task_tools` must be lists (if present)
+- `opencode` metadata exists and is a mapping
+- `opencode.execution_kind` is one of `prompt_only`, `programmatic`, `hybrid`
+- `opencode.compatibility` is one of `full`, `degraded`, `unsupported`
+- `opencode.permission.default` is one of `allow`, `ask`, `deny`
+- `opencode.capability_tags` is a non-empty list of non-empty strings
+- Python-backed skills cannot declare `execution_kind: prompt_only`
+- Python-backed skills cannot claim `compatibility: full`
+- unsupported skills must use `opencode.permission.default: deny`
+
+Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
 
 
 ## T13 acceptance commands
