@@ -28,6 +28,10 @@ opencode:
   capability_tags:
     - prompt-only
     - tools-required
+  tool_mappings:
+    run_command: efp_run_command
+    github_get_default_branch: efp_github_get_default_branch
+    github_create_pull_request: efp_github_create_pull_request
 ---
 
 # Skill: create-pull-request

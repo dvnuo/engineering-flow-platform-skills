@@ -12,12 +12,40 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 
+if yaml is not None:
+    class UniqueKeySafeLoader(yaml.SafeLoader):
+        pass
+
+    def _construct_unique_mapping(loader, node, deep=False):
+        loader.flatten_mapping(node)
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = loader.construct_object(key_node, deep=deep)
+            if key in mapping:
+                raise yaml.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key!r}",
+                    key_node.start_mark,
+                )
+            value = loader.construct_object(value_node, deep=deep)
+            mapping[key] = value
+        return mapping
+
+    UniqueKeySafeLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        _construct_unique_mapping,
+    )
+else:  # pragma: no cover
+    UniqueKeySafeLoader = None
+
 IGNORE_DIRS = {".git", ".github", "scripts", "__pycache__"}
 REQUIRED_KEYS = {"name", "description", "version", "owner"}
 OPENCODE_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 OPENCODE_PERMISSION_DEFAULTS = {"allow", "ask", "deny"}
 OPENCODE_EXECUTION_KINDS = {"prompt_only", "programmatic", "hybrid"}
 OPENCODE_COMPATIBILITY_LEVELS = {"full", "degraded", "unsupported"}
+OPENCODE_TOOL_NAME_RE = re.compile(r"^efp_[a-z0-9_]+$")
 
 
 def normalize_opencode_name(raw_name: str, fallback_seed: str) -> str:
@@ -53,7 +81,7 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
     if yaml is not None:
         try:
-            loaded = yaml.safe_load(frontmatter_text)
+            loaded = yaml.load(frontmatter_text, Loader=UniqueKeySafeLoader)
         except yaml.YAMLError as exc:
             return {}, [f"invalid frontmatter yaml: {exc}"]
         if loaded is None:
@@ -66,14 +94,43 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
 
 def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], list[str]]:
-    def clean_scalar(raw: str) -> str:
+    errors: list[str] = []
+
+    def parse_scalar(raw: str) -> object:
         cleaned = raw.strip()
         if (
             (cleaned.startswith('"') and cleaned.endswith('"'))
             or (cleaned.startswith("'") and cleaned.endswith("'"))
         ) and len(cleaned) >= 2:
-            cleaned = cleaned[1:-1]
+            return cleaned[1:-1]
+        low = cleaned.lower()
+        if low == "true":
+            return True
+        if low == "false":
+            return False
+        if re.fullmatch(r"-?\d+", cleaned):
+            try:
+                return int(cleaned)
+            except ValueError:
+                return cleaned
         return cleaned
+
+    def clean_scalar(raw: str) -> str:
+        parsed = parse_scalar(raw)
+        return parsed if isinstance(parsed, str) else str(parsed)
+
+    def _skip_nested_block(start_i: int, parent_indent: int) -> int:
+        j = start_i + 1
+        while j < len(fm_lines):
+            raw_next = fm_lines[j]
+            if not raw_next.strip():
+                j += 1
+                continue
+            next_indent = len(raw_next) - len(raw_next.lstrip(" "))
+            if next_indent <= parent_indent:
+                break
+            j += 1
+        return j
 
     def parse_mapping(start: int, base_indent: int) -> tuple[dict[str, object], int]:
         data: dict[str, object] = {}
@@ -89,17 +146,25 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
             if indent > base_indent:
                 i += 1
                 continue
-            m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$", raw)
+            m = re.match(r"^\s*([^:#][^:]*)\s*:\s*(.*)$", raw)
             if not m:
                 i += 1
                 continue
-            key, value = m.group(1), m.group(2)
+            key = parse_scalar(m.group(1))
+            value = m.group(2)
+            if key in data:
+                errors.append(f"duplicate frontmatter key {key!r}")
+                if value.strip():
+                    i += 1
+                else:
+                    i = _skip_nested_block(i, indent)
+                continue
             if value.strip() == "[]":
                 data[key] = []
                 i += 1
                 continue
             if value.strip():
-                data[key] = clean_scalar(value)
+                data[key] = parse_scalar(value)
                 i += 1
                 continue
             i += 1
@@ -115,7 +180,7 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
                     break
                 sm = re.match(r"^\s*-\s*(.*?)\s*$", line)
                 if sm:
-                    list_items.append(clean_scalar(sm.group(1)))
+                    list_items.append(parse_scalar(sm.group(1)))
                     j += 1
                     continue
                 break
@@ -129,7 +194,7 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
         return data, i
 
     parsed, _ = parse_mapping(0, 0)
-    return parsed, []
+    return parsed, errors
 
 
 def _is_non_empty_string_list(value: object) -> bool:
@@ -138,18 +203,149 @@ def _is_non_empty_string_list(value: object) -> bool:
     return bool(value) and all(isinstance(item, str) and item.strip() for item in value)
 
 
+
+
+def _collect_legacy_tool_names(data: dict[str, object], errors: list[str], rel: Path) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for field in ["tools", "task_tools"]:
+        val = data.get(field)
+        if val is None:
+            continue
+        if val == "" or not isinstance(val, list):
+            errors.append(f"{rel}: '{field}' must be a list or omitted")
+            continue
+        for item in val:
+            if not isinstance(item, str):
+                errors.append(f"{rel}: '{field}' items must be non-empty strings")
+                continue
+            stripped = item.strip()
+            if not stripped:
+                errors.append(f"{rel}: '{field}' contains empty item")
+                continue
+            if stripped != item:
+                errors.append(
+                    f"{rel}: '{field}' item '{item}' must not include leading or trailing whitespace"
+                )
+                continue
+            tool_name = item
+            if tool_name not in seen:
+                seen.add(tool_name)
+                result.append(tool_name)
+    return result
+
+
+def validate_opencode_tool_mappings(
+    *,
+    rel: Path,
+    opencode: dict[str, object],
+    legacy_tool_names: list[str],
+    errors: list[str],
+) -> int:
+    if not legacy_tool_names:
+        mappings = opencode.get("tool_mappings")
+        if mappings is None or mappings == {}:
+            return 0
+        if not isinstance(mappings, dict):
+            errors.append(f"{rel}: opencode.tool_mappings must be a mapping/object when present")
+            return 0
+        if mappings:
+            errors.append(
+                f"{rel}: opencode.tool_mappings must be omitted or empty when tools/task_tools are empty"
+            )
+        return 0
+
+    mappings = opencode.get("tool_mappings")
+    if not isinstance(mappings, dict):
+        errors.append(
+            f"{rel}: opencode.tool_mappings must map every tools/task_tools item to its OpenCode wrapper name"
+        )
+        return 0
+
+    cleaned_mappings: dict[str, object] = {}
+    for raw_key, raw_value in mappings.items():
+        if not isinstance(raw_key, str):
+            errors.append(f"{rel}: opencode.tool_mappings keys must be non-empty strings")
+            continue
+        key = raw_key.strip()
+        if not key:
+            errors.append(f"{rel}: opencode.tool_mappings contains empty key")
+            continue
+        if key != raw_key:
+            errors.append(
+                f"{rel}: opencode.tool_mappings key '{raw_key}' must not include leading or trailing whitespace"
+            )
+            continue
+        if key in cleaned_mappings:
+            errors.append(
+                f"{rel}: opencode.tool_mappings contains duplicate mapping for tool '{key}'"
+            )
+            continue
+        cleaned_mappings[key] = raw_value
+
+    expected_keys = set(legacy_tool_names)
+    actual_keys = set(cleaned_mappings.keys())
+
+    missing = sorted(expected_keys - actual_keys)
+    extra = sorted(actual_keys - expected_keys)
+
+    for key in missing:
+        errors.append(f"{rel}: opencode.tool_mappings missing mapping for tool '{key}'")
+    for key in extra:
+        errors.append(f"{rel}: opencode.tool_mappings contains extra mapping for unknown tool '{key}'")
+
+    accepted = 0
+    for native_name in legacy_tool_names:
+        raw_value = cleaned_mappings.get(native_name)
+        if raw_value is None:
+            continue
+        if not isinstance(raw_value, str) or not raw_value.strip():
+            errors.append(f"{rel}: opencode.tool_mappings.{native_name} must be a non-empty string")
+            continue
+
+        opencode_name = raw_value
+        stripped_value = opencode_name.strip()
+        if stripped_value != opencode_name:
+            errors.append(
+                f"{rel}: opencode.tool_mappings.{native_name} value '{opencode_name}' must not include leading or trailing whitespace"
+            )
+            continue
+        if not OPENCODE_TOOL_NAME_RE.fullmatch(opencode_name):
+            errors.append(
+                f"{rel}: opencode.tool_mappings.{native_name}='{opencode_name}' must match ^efp_[a-z0-9_]+$"
+            )
+            continue
+
+        expected_value = f"efp_{native_name}"
+        if opencode_name != expected_value:
+            errors.append(f"{rel}: opencode.tool_mappings.{native_name} must be '{expected_value}'")
+            continue
+
+        accepted += 1
+
+    return accepted
+
 def validate_opencode_metadata(
     *,
     rel: Path,
     data: dict[str, object],
     has_skill_py: bool,
+    legacy_tool_names: list[str],
     errors: list[str],
-) -> dict[str, str]:
-    result: dict[str, str] = {}
+) -> dict[str, object]:
+    result: dict[str, object] = {}
     opencode = data.get("opencode")
     if not isinstance(opencode, dict):
         errors.append(f"{rel}: missing or invalid 'opencode' mapping for OpenCode compatibility")
         return result
+
+    tool_mapping_count = validate_opencode_tool_mappings(
+        rel=rel,
+        opencode=opencode,
+        legacy_tool_names=legacy_tool_names,
+        errors=errors,
+    )
+    result["tool_mapping_count"] = tool_mapping_count
 
     execution_kind = opencode.get("execution_kind")
     if not isinstance(execution_kind, str) or execution_kind not in OPENCODE_EXECUTION_KINDS:
@@ -252,6 +448,9 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
     opencode_permission_counts = {"allow": 0, "ask": 0, "deny": 0}
     opencode_execution_kind_counts = {"prompt_only": 0, "programmatic": 0, "hybrid": 0}
     opencode_compatibility_counts = {"full": 0, "degraded": 0, "unsupported": 0}
+    opencode_tool_required_skill_count = 0
+    opencode_tool_mapped_skill_count = 0
+    opencode_tool_mapping_count = 0
 
     for skill_md in skill_files:
         rel = skill_md.relative_to(root)
@@ -314,19 +513,16 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
             else:
                 normalized_names[normalized] = skill_md
 
-            for field in ["tools", "task_tools"]:
-                val = data.get(field)
-                if val is None:
-                    continue
-                if val == "" or not isinstance(val, list):
-                    errors.append(f"{rel}: '{field}' must be a list or omitted")
-                    continue
-                for item in val:
-                    if not str(item).strip():
-                        errors.append(f"{rel}: '{field}' contains empty item")
+            legacy_tool_names = _collect_legacy_tool_names(data, errors, rel)
+            if legacy_tool_names:
+                opencode_tool_required_skill_count += 1
 
             opencode_meta = validate_opencode_metadata(
-                rel=rel, data=data, has_skill_py=has_skill_py, errors=errors
+                rel=rel,
+                data=data,
+                has_skill_py=has_skill_py,
+                legacy_tool_names=legacy_tool_names,
+                errors=errors,
             )
             if opencode_meta:
                 opencode_metadata_count += 1
@@ -339,6 +535,10 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
                     opencode_execution_kind_counts[execution_kind] += 1
                 if compatibility in opencode_compatibility_counts:
                     opencode_compatibility_counts[compatibility] += 1
+                mapping_count = int(opencode_meta.get("tool_mapping_count", 0))
+                opencode_tool_mapping_count += mapping_count
+                if legacy_tool_names and mapping_count == len(legacy_tool_names):
+                    opencode_tool_mapped_skill_count += 1
 
     stats = {
         "total_skill_directories": len(skill_dirs),
@@ -356,6 +556,9 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
         "opencode_compatibility_full_count": opencode_compatibility_counts["full"],
         "opencode_compatibility_degraded_count": opencode_compatibility_counts["degraded"],
         "opencode_compatibility_unsupported_count": opencode_compatibility_counts["unsupported"],
+        "opencode_tool_required_skill_count": opencode_tool_required_skill_count,
+        "opencode_tool_mapped_skill_count": opencode_tool_mapped_skill_count,
+        "opencode_tool_mapping_count": opencode_tool_mapping_count,
     }
 
     exit_code = 1 if errors else 0
@@ -408,6 +611,9 @@ def main(argv: list[str] | None = None) -> int:
             f"degraded={stats['opencode_compatibility_degraded_count']} "
             f"unsupported={stats['opencode_compatibility_unsupported_count']}"
         )
+        print(f"opencode tool-required skills: {stats['opencode_tool_required_skill_count']}")
+        print(f"opencode tool-mapped skills: {stats['opencode_tool_mapped_skill_count']}")
+        print(f"opencode tool mappings: {stats['opencode_tool_mapping_count']}")
 
     if errors:
         print("\nValidation errors:")

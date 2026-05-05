@@ -28,6 +28,9 @@ opencode:
   capability_tags:
     - prompt-only
     - tools-required
+  tool_mappings:
+    jira_get_issue: efp_jira_get_issue
+    jira_search: efp_jira_search
 ---
 
 # Jira to Manual Test Cases

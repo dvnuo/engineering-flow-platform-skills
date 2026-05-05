@@ -41,6 +41,15 @@ opencode:
   capability_tags:
     - prompt-only
     - tools-required
+  tool_mappings:
+    jira_get_issue_by_url: efp_jira_get_issue_by_url
+    jira_search: efp_jira_search
+    github_create_or_update_file: efp_github_create_or_update_file
+    github_get_file_content: efp_github_get_file_content
+    git_clone: efp_git_clone
+    git_commit: efp_git_commit
+    git_push: efp_git_push
+    run_command: efp_run_command
 ---
 
 # MobileX Test Cases Generator

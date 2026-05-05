@@ -19,4 +19,6 @@ opencode:
   capability_tags:
     - prompt-only
     - tools-required
+  tool_mappings:
+    exec: efp_exec
 ---
