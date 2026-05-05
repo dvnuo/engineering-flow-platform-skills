@@ -18,6 +18,13 @@ strategy:
   - "3. 分轮输出 step definitions 骨架与组织建议。"
   - "4. 避免一次性生成大量低质量样板代码。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Feature StepDef Scaffolder

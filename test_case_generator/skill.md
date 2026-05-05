@@ -14,6 +14,13 @@ strategy:
   - "2. Generate pytest-compatible test code"
   - "3. Return formatted code block"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Test Case Generator

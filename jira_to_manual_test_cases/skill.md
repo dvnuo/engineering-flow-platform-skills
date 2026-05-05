@@ -20,6 +20,14 @@ strategy:
   - "3. 生成结构化人工测试：preconditions、steps、expected、negative。"
   - "4. 每轮只推进一小步，避免一次输出过长不可评审内容。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---
 
 # Jira to Manual Test Cases

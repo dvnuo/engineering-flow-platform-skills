@@ -9,6 +9,16 @@ from scripts.validate_skills import (
     validate_root,
 )
 
+VALID_OPENCODE_BLOCK = """
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - test
+"""
+
 
 def test_normalize_opencode_name_examples() -> None:
     assert (
@@ -106,6 +116,7 @@ version: 1.0.0
 owner: test
 triggers:
   - x
+""" + VALID_OPENCODE_BLOCK + """
 ---
 """,
     )
@@ -119,6 +130,7 @@ version: 1.0.0
 owner: test
 triggers:
   - y
+""" + VALID_OPENCODE_BLOCK + """
 ---
 """,
     )
@@ -141,6 +153,7 @@ owner: test
 triggers:
   - x
 tools: jira_get_issue
+""" + VALID_OPENCODE_BLOCK + """
 ---
 """,
     )
@@ -163,6 +176,7 @@ owner: test
 triggers:
   - x
 tools: []
+""" + VALID_OPENCODE_BLOCK + """
 ---
 """,
     )
@@ -180,10 +194,21 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
 
     assert exit_code == 0, "\n".join(errors)
     assert errors == []
-    assert stats["total_skill_directories"] >= 1
-    assert stats["total_skill_md_discovered"] >= 1
+    assert stats["total_skill_directories"] == 21
+    assert stats["total_skill_md_discovered"] == 21
+    assert stats["python_backed_skills_count"] == 5
     assert stats["opencode_compatible_enabled"] == 1
-    assert stats["opencode_normalized_skill_names"] >= 1
+    assert stats["opencode_normalized_skill_names"] == 21
+    assert stats["opencode_metadata_count"] == 21
+    assert stats["opencode_permission_default_allow_count"] == 0
+    assert stats["opencode_permission_default_ask_count"] == 16
+    assert stats["opencode_permission_default_deny_count"] == 5
+    assert stats["opencode_execution_kind_prompt_only_count"] == 16
+    assert stats["opencode_execution_kind_programmatic_count"] == 5
+    assert stats["opencode_execution_kind_hybrid_count"] == 0
+    assert stats["opencode_compatibility_full_count"] == 10
+    assert stats["opencode_compatibility_degraded_count"] == 6
+    assert stats["opencode_compatibility_unsupported_count"] == 5
 
 
 def test_validate_root_rejects_nested_skills_directory(tmp_path: Path) -> None:
@@ -216,6 +241,7 @@ owner: test
 triggers:
   - legacy
 tools: []
+""" + VALID_OPENCODE_BLOCK + """
 ---
 Body
 """,
@@ -243,6 +269,7 @@ owner: test
 triggers:
   - x
 tools: []
+""" + VALID_OPENCODE_BLOCK + """
 ---
 Body
 """,
@@ -255,3 +282,166 @@ def test_main_returns_2_for_missing_root(tmp_path: Path) -> None:
     missing = tmp_path / "missing"
 
     assert main(["--root", str(missing), "--opencode-compatible"]) == 2
+
+
+def test_validate_root_requires_opencode_metadata_in_opencode_mode(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path,
+        "missing-opencode",
+        """---
+name: missing-opencode
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+---
+""",
+    )
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("missing or invalid 'opencode' mapping" in err for err in errors)
+
+
+def test_validate_root_rejects_invalid_opencode_permission_default(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-permission", f"""---
+name: bad-permission
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: sometimes
+  capability_tags:
+    - test
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.permission.default must be one of" in err for err in errors)
+
+
+def test_validate_root_rejects_invalid_opencode_execution_kind(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-kind", f"""---
+name: bad-kind
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: script
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - test
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.execution_kind must be one of" in err for err in errors)
+
+
+def test_validate_root_rejects_invalid_opencode_compatibility(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-compat", f"""---
+name: bad-compat
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: prompt_only
+  compatibility: partial
+  permission:
+    default: ask
+  capability_tags:
+    - test
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.compatibility must be one of" in err for err in errors)
+
+
+def test_validate_root_rejects_python_backed_skill_claiming_prompt_only(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "py-skill", f"""---
+name: py-skill
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+{VALID_OPENCODE_BLOCK}
+---
+""")
+    (tmp_path / "py-skill" / "skill.py").write_text("", encoding="utf-8")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("Python-backed skill cannot use opencode.execution_kind=prompt_only" in err for err in errors)
+
+
+def test_validate_root_rejects_python_backed_skill_claiming_full_compatibility(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "py-full", """---
+name: py-full
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: programmatic
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - test
+---
+""")
+    (tmp_path / "py-full" / "skill.py").write_text("", encoding="utf-8")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("Python-backed skill cannot claim opencode.compatibility=full" in err for err in errors)
+
+
+def test_validate_root_rejects_unsupported_skill_without_deny_permission(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-unsupported", """---
+name: bad-unsupported
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools: []
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: ask
+  capability_tags:
+    - test
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("unsupported OpenCode skill must use opencode.permission.default=deny" in err for err in errors)
+
+
+def test_integration_fixture_passes_opencode_validation() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    fixture_root = repo_root / "integration" / "fixtures"
+    exit_code, errors, stats = validate_root(fixture_root, opencode_compatible=True)
+    assert exit_code == 0, "\n".join(errors)
+    assert stats["total_skill_md_discovered"] >= 1
+    assert stats["opencode_permission_default_allow_count"] == 1

@@ -9,6 +9,14 @@ triggers:
   - generate test-cases yaml from requirements
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - native-only
+    - programmatic
 ---
 Use this skill to transform requirement bundle context into actionable test case definitions.
 

@@ -18,6 +18,13 @@ strategy:
   - "3. 每轮推进一个核心步骤：先 happy path，再补 validation/error/boundary。"
   - "4. 输出以可执行测试思路为主，不陷入实现细节。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # API Test Scenario Generator

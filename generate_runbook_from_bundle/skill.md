@@ -9,6 +9,14 @@ triggers:
   - create operational runbook yaml
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - native-only
+    - programmatic
 ---
 Use this skill to generate operational guidance from requirement bundle context.
 

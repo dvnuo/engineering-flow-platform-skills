@@ -15,6 +15,9 @@ except ImportError:  # pragma: no cover
 IGNORE_DIRS = {".git", ".github", "scripts", "__pycache__"}
 REQUIRED_KEYS = {"name", "description", "version", "owner"}
 OPENCODE_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+OPENCODE_PERMISSION_DEFAULTS = {"allow", "ask", "deny"}
+OPENCODE_EXECUTION_KINDS = {"prompt_only", "programmatic", "hybrid"}
+OPENCODE_COMPATIBILITY_LEVELS = {"full", "degraded", "unsupported"}
 
 
 def normalize_opencode_name(raw_name: str, fallback_seed: str) -> str:
@@ -63,61 +66,134 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
 
 def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], list[str]]:
-    data: dict[str, object] = {}
-    i = 0
-    while i < len(fm_lines):
-        raw = fm_lines[i]
-        stripped = raw.strip()
-        if not stripped or stripped.startswith("#"):
-            i += 1
-            continue
+    def clean_scalar(raw: str) -> str:
+        cleaned = raw.strip()
+        if (
+            (cleaned.startswith('"') and cleaned.endswith('"'))
+            or (cleaned.startswith("'") and cleaned.endswith("'"))
+        ) and len(cleaned) >= 2:
+            cleaned = cleaned[1:-1]
+        return cleaned
 
-        m = re.match(r"^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$", raw)
-        if not m:
-            i += 1
-            continue
-
-        key = m.group(1)
-        value = m.group(2)
-
-        if value.strip() == "[]":
-            data[key] = []
-            i += 1
-            continue
-
-        if value.strip():
-            cleaned = value.strip()
-            if (
-                (cleaned.startswith('"') and cleaned.endswith('"'))
-                or (cleaned.startswith("'") and cleaned.endswith("'"))
-            ) and len(cleaned) >= 2:
-                cleaned = cleaned[1:-1]
-            data[key] = cleaned
-            i += 1
-            continue
-
-        i += 1
-        list_items: list[str] = []
+    def parse_mapping(start: int, base_indent: int) -> tuple[dict[str, object], int]:
+        data: dict[str, object] = {}
+        i = start
         while i < len(fm_lines):
-            item_line = fm_lines[i]
-            if not item_line.strip():
+            raw = fm_lines[i]
+            if not raw.strip() or raw.strip().startswith("#"):
                 i += 1
                 continue
-            sm = re.match(r"^\s*-\s*(.*?)\s*$", item_line)
-            if not sm:
+            indent = len(raw) - len(raw.lstrip(" "))
+            if indent < base_indent:
                 break
-            item = sm.group(1).strip()
-            if (
-                (item.startswith('"') and item.endswith('"'))
-                or (item.startswith("'") and item.endswith("'"))
-            ) and len(item) >= 2:
-                item = item[1:-1]
-            list_items.append(item)
+            if indent > base_indent:
+                i += 1
+                continue
+            m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$", raw)
+            if not m:
+                i += 1
+                continue
+            key, value = m.group(1), m.group(2)
+            if value.strip() == "[]":
+                data[key] = []
+                i += 1
+                continue
+            if value.strip():
+                data[key] = clean_scalar(value)
+                i += 1
+                continue
             i += 1
+            list_items: list[str] = []
+            j = i
+            while j < len(fm_lines):
+                line = fm_lines[j]
+                if not line.strip():
+                    j += 1
+                    continue
+                item_indent = len(line) - len(line.lstrip(" "))
+                if item_indent <= base_indent:
+                    break
+                sm = re.match(r"^\s*-\s*(.*?)\s*$", line)
+                if sm:
+                    list_items.append(clean_scalar(sm.group(1)))
+                    j += 1
+                    continue
+                break
+            if list_items:
+                data[key] = list_items
+                i = j
+                continue
+            nested, next_i = parse_mapping(i, base_indent + 2)
+            data[key] = nested if nested else ""
+            i = next_i
+        return data, i
 
-        data[key] = list_items if list_items else ""
+    parsed, _ = parse_mapping(0, 0)
+    return parsed, []
 
-    return data, []
+
+def _is_non_empty_string_list(value: object) -> bool:
+    if not isinstance(value, list):
+        return False
+    return bool(value) and all(isinstance(item, str) and item.strip() for item in value)
+
+
+def validate_opencode_metadata(
+    *,
+    rel: Path,
+    data: dict[str, object],
+    has_skill_py: bool,
+    errors: list[str],
+) -> dict[str, str]:
+    result: dict[str, str] = {}
+    opencode = data.get("opencode")
+    if not isinstance(opencode, dict):
+        errors.append(f"{rel}: missing or invalid 'opencode' mapping for OpenCode compatibility")
+        return result
+
+    execution_kind = opencode.get("execution_kind")
+    if not isinstance(execution_kind, str) or execution_kind not in OPENCODE_EXECUTION_KINDS:
+        errors.append(
+            f"{rel}: opencode.execution_kind must be one of: hybrid, programmatic, prompt_only"
+        )
+    else:
+        result["execution_kind"] = execution_kind
+
+    compatibility = opencode.get("compatibility")
+    if not isinstance(compatibility, str) or compatibility not in OPENCODE_COMPATIBILITY_LEVELS:
+        errors.append(
+            f"{rel}: opencode.compatibility must be one of: degraded, full, unsupported"
+        )
+    else:
+        result["compatibility"] = compatibility
+
+    permission_default = ""
+    permission = opencode.get("permission")
+    if isinstance(permission, dict):
+        permission_default = permission.get("default", "")
+    if (
+        not isinstance(permission, dict)
+        or not isinstance(permission_default, str)
+        or permission_default not in OPENCODE_PERMISSION_DEFAULTS
+    ):
+        errors.append(f"{rel}: opencode.permission.default must be one of: allow, ask, deny")
+    else:
+        result["permission_default"] = permission_default
+
+    capability_tags = opencode.get("capability_tags")
+    if not _is_non_empty_string_list(capability_tags):
+        errors.append(f"{rel}: opencode.capability_tags must be a non-empty list of strings")
+
+    if has_skill_py and execution_kind == "prompt_only":
+        errors.append(f"{rel}: Python-backed skill cannot use opencode.execution_kind=prompt_only")
+    if has_skill_py and compatibility == "full":
+        errors.append(
+            f"{rel}: Python-backed skill cannot claim opencode.compatibility=full until OpenCode has a Python execution adapter"
+        )
+    if compatibility == "unsupported" and permission_default != "deny":
+        errors.append(f"{rel}: unsupported OpenCode skill must use opencode.permission.default=deny")
+
+    return result
 
 
 def discover_skill_files(root: Path, errors: list[str]) -> tuple[list[Path], list[Path]]:
@@ -172,11 +248,16 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
     skill_dirs, skill_files = discover_skill_files(root, errors)
     names: dict[str, Path] = {}
     normalized_names: dict[str, Path] = {}
+    opencode_metadata_count = 0
+    opencode_permission_counts = {"allow": 0, "ask": 0, "deny": 0}
+    opencode_execution_kind_counts = {"prompt_only": 0, "programmatic": 0, "hybrid": 0}
+    opencode_compatibility_counts = {"full": 0, "degraded": 0, "unsupported": 0}
 
     for skill_md in skill_files:
         rel = skill_md.relative_to(root)
         content = skill_md.read_text(encoding="utf-8")
         data, fm_errors = parse_frontmatter(content)
+        has_skill_py = (skill_md.parent / "skill.py").exists()
         for msg in fm_errors:
             errors.append(f"{rel}: {msg}")
         if fm_errors:
@@ -244,12 +325,37 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
                     if not str(item).strip():
                         errors.append(f"{rel}: '{field}' contains empty item")
 
+            opencode_meta = validate_opencode_metadata(
+                rel=rel, data=data, has_skill_py=has_skill_py, errors=errors
+            )
+            if opencode_meta:
+                opencode_metadata_count += 1
+                permission_default = opencode_meta.get("permission_default")
+                execution_kind = opencode_meta.get("execution_kind")
+                compatibility = opencode_meta.get("compatibility")
+                if permission_default in opencode_permission_counts:
+                    opencode_permission_counts[permission_default] += 1
+                if execution_kind in opencode_execution_kind_counts:
+                    opencode_execution_kind_counts[execution_kind] += 1
+                if compatibility in opencode_compatibility_counts:
+                    opencode_compatibility_counts[compatibility] += 1
+
     stats = {
         "total_skill_directories": len(skill_dirs),
         "total_skill_md_discovered": len(skill_files),
         "python_backed_skills_count": sum(1 for d in skill_dirs if (d / "skill.py").exists()),
         "opencode_compatible_enabled": int(opencode_compatible),
         "opencode_normalized_skill_names": len(normalized_names),
+        "opencode_metadata_count": opencode_metadata_count,
+        "opencode_permission_default_allow_count": opencode_permission_counts["allow"],
+        "opencode_permission_default_ask_count": opencode_permission_counts["ask"],
+        "opencode_permission_default_deny_count": opencode_permission_counts["deny"],
+        "opencode_execution_kind_prompt_only_count": opencode_execution_kind_counts["prompt_only"],
+        "opencode_execution_kind_programmatic_count": opencode_execution_kind_counts["programmatic"],
+        "opencode_execution_kind_hybrid_count": opencode_execution_kind_counts["hybrid"],
+        "opencode_compatibility_full_count": opencode_compatibility_counts["full"],
+        "opencode_compatibility_degraded_count": opencode_compatibility_counts["degraded"],
+        "opencode_compatibility_unsupported_count": opencode_compatibility_counts["unsupported"],
     }
 
     exit_code = 1 if errors else 0
@@ -283,6 +389,25 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.opencode_compatible:
         print(f"opencode normalized skill names: {stats['opencode_normalized_skill_names']}")
+        print(f"opencode metadata count: {stats['opencode_metadata_count']}")
+        print(
+            "opencode permission defaults: "
+            f"allow={stats['opencode_permission_default_allow_count']} "
+            f"ask={stats['opencode_permission_default_ask_count']} "
+            f"deny={stats['opencode_permission_default_deny_count']}"
+        )
+        print(
+            "opencode execution kinds: "
+            f"prompt_only={stats['opencode_execution_kind_prompt_only_count']} "
+            f"programmatic={stats['opencode_execution_kind_programmatic_count']} "
+            f"hybrid={stats['opencode_execution_kind_hybrid_count']}"
+        )
+        print(
+            "opencode compatibility levels: "
+            f"full={stats['opencode_compatibility_full_count']} "
+            f"degraded={stats['opencode_compatibility_degraded_count']} "
+            f"unsupported={stats['opencode_compatibility_unsupported_count']}"
+        )
 
     if errors:
         print("\nValidation errors:")

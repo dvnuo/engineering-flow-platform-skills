@@ -16,6 +16,13 @@ strategy:
   - "2. 缺少关键信息时只问最小必要问题"
   - "3. 先给可执行草稿，再收敛为最终结果"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Skill Mode Demo

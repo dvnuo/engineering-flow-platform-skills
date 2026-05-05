@@ -18,6 +18,13 @@ strategy:
   - "3. 每轮推进一个目标：先复现，再验证修复，再补回归范围。"
   - "4. 最终 FINISH 给出可执行缺陷验证清单。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Bug Repro Test Designer

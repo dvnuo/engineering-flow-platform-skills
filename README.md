@@ -30,6 +30,39 @@ Skill names with underscores are allowed as EFP names. The runtime converter nor
 
     collect_requirements_to_bundle -> collect-requirements-to-bundle
 
+Every production `skill.md` frontmatter must include:
+
+```yaml
+opencode:
+  execution_kind: prompt_only | programmatic | hybrid
+  compatibility: full | degraded | unsupported
+  permission:
+    default: allow | ask | deny
+  capability_tags:
+    - ...
+```
+
+- Production skills should not use `permission.default=allow`.
+- Prompt-only and tools-required production skills should default to `ask`.
+- Native-only / unsupported skills must use `deny`.
+- `allow` is reserved for the deterministic integration fixture under `integration/fixtures`.
+
+Python-backed skills (skills that include `skill.py`) execute in native EFP runtime, but OpenCode converter currently does not execute `skill.py`. Therefore those skills must be marked:
+
+```yaml
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+```
+
+Integration fixtures:
+- live under `integration/fixtures`
+- are not part of production skills
+- support dual-runtime smoke coverage
+- may use `permission.default=allow` for deterministic test behavior
+
 ## Required repository structure
 
 ```text
@@ -75,6 +108,7 @@ Run:
 ```bash
 python scripts/validate_skills.py
 python scripts/validate_skills.py --opencode-compatible
+python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 ```
 
 The script verifies:
@@ -96,6 +130,7 @@ Required Skills repo checks:
 ```bash
 python scripts/validate_skills.py
 python scripts/validate_skills.py --opencode-compatible
+python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 python -m pytest -q
 integration/scripts/smoke_skills.sh
 ```

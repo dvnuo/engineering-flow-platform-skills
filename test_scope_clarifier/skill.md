@@ -18,6 +18,13 @@ strategy:
   - "3. 逐步沉淀 in scope / out of scope / assumptions / open questions。"
   - "4. 最终 FINISH 给出可执行测试范围建议。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Test Scope Clarifier

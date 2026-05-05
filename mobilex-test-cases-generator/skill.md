@@ -33,6 +33,14 @@ strategy:
   - "8. Generate phase 4+ Java drivers one file at a time"
   - "9. Commit only after files are written and user confirms"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---
 
 # MobileX Test Cases Generator
