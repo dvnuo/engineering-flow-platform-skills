@@ -72,6 +72,7 @@ Rules:
 - `tools` and `task_tools` keep native EFP tool names.
 - `opencode.tool_mappings` maps each native EFP tool name to its OpenCode wrapper name.
 - The wrapper name must currently be `efp_<native_tool_name>`.
+- Tool names and mapping values must be canonical strings with no leading or trailing whitespace; the validator rejects non-canonical names instead of normalizing them.
 - This repo does not decide whether the wrapper is enabled at runtime; the Tools repo and opencode-runtime decide availability.
 - Skills using tool_mappings should generally keep `opencode.compatibility: degraded` unless the runtime has verified full parity.
 

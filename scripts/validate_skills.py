@@ -170,10 +170,16 @@ def _collect_legacy_tool_names(data: dict[str, object], errors: list[str], rel: 
             if not isinstance(item, str):
                 errors.append(f"{rel}: '{field}' items must be non-empty strings")
                 continue
-            tool_name = item.strip()
-            if not tool_name:
+            stripped = item.strip()
+            if not stripped:
                 errors.append(f"{rel}: '{field}' contains empty item")
                 continue
+            if stripped != item:
+                errors.append(
+                    f"{rel}: '{field}' item '{item}' must not include leading or trailing whitespace"
+                )
+                continue
+            tool_name = item
             if tool_name not in seen:
                 seen.add(tool_name)
                 result.append(tool_name)
@@ -248,7 +254,13 @@ def validate_opencode_tool_mappings(
             errors.append(f"{rel}: opencode.tool_mappings.{native_name} must be a non-empty string")
             continue
 
-        opencode_name = raw_value.strip()
+        opencode_name = raw_value
+        stripped_value = opencode_name.strip()
+        if stripped_value != opencode_name:
+            errors.append(
+                f"{rel}: opencode.tool_mappings.{native_name} value '{opencode_name}' must not include leading or trailing whitespace"
+            )
+            continue
         if not OPENCODE_TOOL_NAME_RE.fullmatch(opencode_name):
             errors.append(
                 f"{rel}: opencode.tool_mappings.{native_name}='{opencode_name}' must match ^efp_[a-z0-9_]+$"

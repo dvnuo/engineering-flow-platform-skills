@@ -437,6 +437,63 @@ opencode:
     assert any("missing mapping for tool 'jira_get_issue'" in err for err in errors)
 
 
+def test_validate_root_rejects_tool_item_with_whitespace(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-tool-space", """---
+name: bad-tool-space
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - " jira_get_issue "
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: efp_jira_get_issue
+---
+Body
+""")
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("'tools' item ' jira_get_issue ' must not include leading or trailing whitespace" in err for err in errors)
+    assert stats["opencode_tool_mapped_skill_count"] == 0
+
+
+def test_validate_root_rejects_tool_mapping_value_with_whitespace(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-map-value-space", """---
+name: bad-map-value-space
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: " efp_jira_get_issue "
+---
+Body
+""")
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings.jira_get_issue value ' efp_jira_get_issue ' must not include leading or trailing whitespace" in err for err in errors)
+    assert stats["opencode_tool_mapped_skill_count"] == 0
+    assert stats["opencode_tool_mapping_count"] == 0
+
+
 def test_current_repository_passes_t13_opencode_validation() -> None:
     repo_root = Path(__file__).resolve().parents[1]
 
