@@ -67,14 +67,28 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
 
 def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], list[str]]:
-    def clean_scalar(raw: str) -> str:
+    def parse_scalar(raw: str) -> object:
         cleaned = raw.strip()
         if (
             (cleaned.startswith('"') and cleaned.endswith('"'))
             or (cleaned.startswith("'") and cleaned.endswith("'"))
         ) and len(cleaned) >= 2:
-            cleaned = cleaned[1:-1]
+            return cleaned[1:-1]
+        low = cleaned.lower()
+        if low == "true":
+            return True
+        if low == "false":
+            return False
+        if re.fullmatch(r"-?\d+", cleaned):
+            try:
+                return int(cleaned)
+            except ValueError:
+                return cleaned
         return cleaned
+
+    def clean_scalar(raw: str) -> str:
+        parsed = parse_scalar(raw)
+        return parsed if isinstance(parsed, str) else str(parsed)
 
     def parse_mapping(start: int, base_indent: int) -> tuple[dict[str, object], int]:
         data: dict[str, object] = {}
@@ -90,17 +104,18 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
             if indent > base_indent:
                 i += 1
                 continue
-            m = re.match(r"^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$", raw)
+            m = re.match(r"^\s*([^:#][^:]*)\s*:\s*(.*)$", raw)
             if not m:
                 i += 1
                 continue
-            key, value = m.group(1), m.group(2)
+            key = parse_scalar(m.group(1))
+            value = m.group(2)
             if value.strip() == "[]":
                 data[key] = []
                 i += 1
                 continue
             if value.strip():
-                data[key] = clean_scalar(value)
+                data[key] = parse_scalar(value)
                 i += 1
                 continue
             i += 1
@@ -116,7 +131,7 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
                     break
                 sm = re.match(r"^\s*-\s*(.*?)\s*$", line)
                 if sm:
-                    list_items.append(clean_scalar(sm.group(1)))
+                    list_items.append(parse_scalar(sm.group(1)))
                     j += 1
                     continue
                 break
@@ -152,7 +167,10 @@ def _collect_legacy_tool_names(data: dict[str, object], errors: list[str], rel: 
             errors.append(f"{rel}: '{field}' must be a list or omitted")
             continue
         for item in val:
-            tool_name = str(item).strip()
+            if not isinstance(item, str):
+                errors.append(f"{rel}: '{field}' items must be non-empty strings")
+                continue
+            tool_name = item.strip()
             if not tool_name:
                 errors.append(f"{rel}: '{field}' contains empty item")
                 continue
@@ -189,11 +207,29 @@ def validate_opencode_tool_mappings(
         )
         return 0
 
-    expected_keys = set(legacy_tool_names)
-    actual_keys = {str(key).strip() for key in mappings.keys()}
+    cleaned_mappings: dict[str, object] = {}
+    for raw_key, raw_value in mappings.items():
+        if not isinstance(raw_key, str):
+            errors.append(f"{rel}: opencode.tool_mappings keys must be non-empty strings")
+            continue
+        key = raw_key.strip()
+        if not key:
+            errors.append(f"{rel}: opencode.tool_mappings contains empty key")
+            continue
+        if key != raw_key:
+            errors.append(
+                f"{rel}: opencode.tool_mappings key '{raw_key}' must not include leading or trailing whitespace"
+            )
+            continue
+        if key in cleaned_mappings:
+            errors.append(
+                f"{rel}: opencode.tool_mappings contains duplicate mapping for tool '{key}'"
+            )
+            continue
+        cleaned_mappings[key] = raw_value
 
-    if "" in actual_keys:
-        errors.append(f"{rel}: opencode.tool_mappings contains empty key")
+    expected_keys = set(legacy_tool_names)
+    actual_keys = set(cleaned_mappings.keys())
 
     missing = sorted(expected_keys - actual_keys)
     extra = sorted(actual_keys - expected_keys)
@@ -205,7 +241,7 @@ def validate_opencode_tool_mappings(
 
     accepted = 0
     for native_name in legacy_tool_names:
-        raw_value = mappings.get(native_name)
+        raw_value = cleaned_mappings.get(native_name)
         if raw_value is None:
             continue
         if not isinstance(raw_value, str) or not raw_value.strip():

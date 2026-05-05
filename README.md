@@ -30,7 +30,7 @@ Skill names with underscores are allowed as EFP names. The runtime converter nor
 
     collect_requirements_to_bundle -> collect-requirements-to-bundle
 
-Every production `skill.md` frontmatter must include:
+Every production `skill.md` frontmatter must include the base OpenCode metadata:
 
 ```yaml
 opencode:
@@ -40,11 +40,17 @@ opencode:
     default: allow | ask | deny
   capability_tags:
     - ...
-  tool_mappings:
-    <native_tool_name>: efp_<native_tool_name>
 ```
 
 Every skill that declares `tools` or `task_tools` must also declare `opencode.tool_mappings`.
+
+Every skill that declares `tools` or `task_tools` must additionally declare:
+
+```yaml
+opencode:
+  tool_mappings:
+    <native_tool_name>: efp_<native_tool_name>
+```
 
 Example:
 

@@ -357,6 +357,86 @@ task_tools:
     assert stats["opencode_tool_mapping_count"] == 2
 
 
+def test_validate_root_rejects_tool_mapping_key_with_whitespace(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-key-space", """---
+name: bad-key-space
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    " jira_get_issue ": efp_jira_get_issue
+---
+""")
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("must not include leading or trailing whitespace" in err for err in errors)
+    assert stats["opencode_tool_mapped_skill_count"] == 0
+
+
+def test_validate_root_rejects_non_string_tool_items(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-tool-item", """---
+name: bad-tool-item
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - 123
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    "123": efp_123
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("'tools' items must be non-empty strings" in err for err in errors)
+
+
+def test_validate_root_rejects_non_string_tool_mapping_key(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-map-key-type", """---
+name: bad-map-key-type
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    123: efp_jira_get_issue
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings keys must be non-empty strings" in err for err in errors)
+    assert any("missing mapping for tool 'jira_get_issue'" in err for err in errors)
+
+
 def test_current_repository_passes_t13_opencode_validation() -> None:
     repo_root = Path(__file__).resolve().parents[1]
 
