@@ -40,7 +40,34 @@ opencode:
     default: allow | ask | deny
   capability_tags:
     - ...
+  tool_mappings:
+    <native_tool_name>: efp_<native_tool_name>
 ```
+
+Every skill that declares `tools` or `task_tools` must also declare `opencode.tool_mappings`.
+
+Example:
+
+```yaml
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
+  tool_mappings:
+    github_get_pr: efp_github_get_pr
+    jira_search: efp_jira_search
+```
+
+Rules:
+- `tools` and `task_tools` keep native EFP tool names.
+- `opencode.tool_mappings` maps each native EFP tool name to its OpenCode wrapper name.
+- The wrapper name must currently be `efp_<native_tool_name>`.
+- This repo does not decide whether the wrapper is enabled at runtime; the Tools repo and opencode-runtime decide availability.
+- Skills using tool_mappings should generally keep `opencode.compatibility: degraded` unless the runtime has verified full parity.
 
 - Production skills should not use `permission.default=allow`.
 - Prompt-only and tools-required production skills should default to `ask`.
@@ -136,6 +163,8 @@ OpenCode compatibility mode (`--opencode-compatible`) also verifies:
 - `opencode.compatibility` is one of `full`, `degraded`, `unsupported`
 - `opencode.permission.default` is one of `allow`, `ask`, `deny`
 - `opencode.capability_tags` is a non-empty list of non-empty strings
+- `opencode.tool_mappings` must cover every `tools` / `task_tools` item when those fields are non-empty
+- tool mapping values must follow the canonical `efp_<native_tool_name>` wrapper naming rule
 - Python-backed skills cannot declare `execution_kind: prompt_only`
 - Python-backed skills cannot claim `compatibility: full`
 - unsupported skills must use `opencode.permission.default: deny`

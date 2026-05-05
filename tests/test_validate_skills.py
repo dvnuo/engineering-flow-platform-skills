@@ -19,6 +19,20 @@ opencode:
     - test
 """
 
+VALID_OPENCODE_WITH_TOOL_MAPPING = """
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+    - tools-required
+  tool_mappings:
+    jira_get_issue: efp_jira_get_issue
+    jira_search: efp_jira_search
+"""
+
 
 def test_normalize_opencode_name_examples() -> None:
     assert (
@@ -187,6 +201,162 @@ tools: []
     assert errors == []
 
 
+def test_validate_root_requires_tool_mappings_when_tools_present(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path,
+        "needs-mapping",
+        """---
+name: needs-mapping
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+""" + VALID_OPENCODE_BLOCK + """
+---
+""",
+    )
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings must map every tools/task_tools item" in err for err in errors)
+
+
+def test_validate_root_rejects_missing_tool_mapping_key(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "missing-key", """---
+name: missing-key
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+  - jira_search
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: efp_jira_get_issue
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings missing mapping for tool 'jira_search'" in err for err in errors)
+
+
+def test_validate_root_rejects_extra_tool_mapping_key(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "extra-key", """---
+name: extra-key
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: efp_jira_get_issue
+    jira_search: efp_jira_search
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings contains extra mapping for unknown tool 'jira_search'" in err for err in errors)
+
+
+def test_validate_root_rejects_noncanonical_opencode_tool_mapping(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "bad-map", """---
+name: bad-map
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: jira_get_issue
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings.jira_get_issue='jira_get_issue' must match" in err for err in errors)
+
+
+def test_validate_root_rejects_wrong_exact_opencode_tool_mapping(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "wrong-map", """---
+name: wrong-map
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: efp_wrong_name
+---
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any("opencode.tool_mappings.jira_get_issue must be 'efp_jira_get_issue'" in err for err in errors)
+
+
+def test_validate_root_counts_tool_mappings(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path,
+        "mapping-count",
+        """---
+name: mapping-count
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+task_tools:
+  - jira_get_issue
+  - jira_search
+""" + VALID_OPENCODE_WITH_TOOL_MAPPING + """
+---
+""",
+    )
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 0
+    assert errors == []
+    assert stats["opencode_tool_required_skill_count"] == 1
+    assert stats["opencode_tool_mapped_skill_count"] == 1
+    assert stats["opencode_tool_mapping_count"] == 2
+
+
 def test_current_repository_passes_t13_opencode_validation() -> None:
     repo_root = Path(__file__).resolve().parents[1]
 
@@ -209,6 +379,9 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
     assert stats["opencode_compatibility_full_count"] == 10
     assert stats["opencode_compatibility_degraded_count"] == 6
     assert stats["opencode_compatibility_unsupported_count"] == 5
+    assert stats["opencode_tool_required_skill_count"] == 6
+    assert stats["opencode_tool_mapped_skill_count"] == 6
+    assert stats["opencode_tool_mapping_count"] == 24
 
 
 def test_validate_root_rejects_nested_skills_directory(tmp_path: Path) -> None:

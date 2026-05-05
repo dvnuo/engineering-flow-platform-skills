@@ -18,6 +18,7 @@ OPENCODE_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 OPENCODE_PERMISSION_DEFAULTS = {"allow", "ask", "deny"}
 OPENCODE_EXECUTION_KINDS = {"prompt_only", "programmatic", "hybrid"}
 OPENCODE_COMPATIBILITY_LEVELS = {"full", "degraded", "unsupported"}
+OPENCODE_TOOL_NAME_RE = re.compile(r"^efp_[a-z0-9_]+$")
 
 
 def normalize_opencode_name(raw_name: str, fallback_seed: str) -> str:
@@ -138,18 +139,116 @@ def _is_non_empty_string_list(value: object) -> bool:
     return bool(value) and all(isinstance(item, str) and item.strip() for item in value)
 
 
+
+
+def _collect_legacy_tool_names(data: dict[str, object], errors: list[str], rel: Path) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for field in ["tools", "task_tools"]:
+        val = data.get(field)
+        if val is None:
+            continue
+        if val == "" or not isinstance(val, list):
+            errors.append(f"{rel}: '{field}' must be a list or omitted")
+            continue
+        for item in val:
+            tool_name = str(item).strip()
+            if not tool_name:
+                errors.append(f"{rel}: '{field}' contains empty item")
+                continue
+            if tool_name not in seen:
+                seen.add(tool_name)
+                result.append(tool_name)
+    return result
+
+
+def validate_opencode_tool_mappings(
+    *,
+    rel: Path,
+    opencode: dict[str, object],
+    legacy_tool_names: list[str],
+    errors: list[str],
+) -> int:
+    if not legacy_tool_names:
+        mappings = opencode.get("tool_mappings")
+        if mappings is None or mappings == {}:
+            return 0
+        if not isinstance(mappings, dict):
+            errors.append(f"{rel}: opencode.tool_mappings must be a mapping/object when present")
+            return 0
+        if mappings:
+            errors.append(
+                f"{rel}: opencode.tool_mappings must be omitted or empty when tools/task_tools are empty"
+            )
+        return 0
+
+    mappings = opencode.get("tool_mappings")
+    if not isinstance(mappings, dict):
+        errors.append(
+            f"{rel}: opencode.tool_mappings must map every tools/task_tools item to its OpenCode wrapper name"
+        )
+        return 0
+
+    expected_keys = set(legacy_tool_names)
+    actual_keys = {str(key).strip() for key in mappings.keys()}
+
+    if "" in actual_keys:
+        errors.append(f"{rel}: opencode.tool_mappings contains empty key")
+
+    missing = sorted(expected_keys - actual_keys)
+    extra = sorted(actual_keys - expected_keys)
+
+    for key in missing:
+        errors.append(f"{rel}: opencode.tool_mappings missing mapping for tool '{key}'")
+    for key in extra:
+        errors.append(f"{rel}: opencode.tool_mappings contains extra mapping for unknown tool '{key}'")
+
+    accepted = 0
+    for native_name in legacy_tool_names:
+        raw_value = mappings.get(native_name)
+        if raw_value is None:
+            continue
+        if not isinstance(raw_value, str) or not raw_value.strip():
+            errors.append(f"{rel}: opencode.tool_mappings.{native_name} must be a non-empty string")
+            continue
+
+        opencode_name = raw_value.strip()
+        if not OPENCODE_TOOL_NAME_RE.fullmatch(opencode_name):
+            errors.append(
+                f"{rel}: opencode.tool_mappings.{native_name}='{opencode_name}' must match ^efp_[a-z0-9_]+$"
+            )
+            continue
+
+        expected_value = f"efp_{native_name}"
+        if opencode_name != expected_value:
+            errors.append(f"{rel}: opencode.tool_mappings.{native_name} must be '{expected_value}'")
+            continue
+
+        accepted += 1
+
+    return accepted
+
 def validate_opencode_metadata(
     *,
     rel: Path,
     data: dict[str, object],
     has_skill_py: bool,
+    legacy_tool_names: list[str],
     errors: list[str],
-) -> dict[str, str]:
-    result: dict[str, str] = {}
+) -> dict[str, object]:
+    result: dict[str, object] = {}
     opencode = data.get("opencode")
     if not isinstance(opencode, dict):
         errors.append(f"{rel}: missing or invalid 'opencode' mapping for OpenCode compatibility")
         return result
+
+    tool_mapping_count = validate_opencode_tool_mappings(
+        rel=rel,
+        opencode=opencode,
+        legacy_tool_names=legacy_tool_names,
+        errors=errors,
+    )
+    result["tool_mapping_count"] = tool_mapping_count
 
     execution_kind = opencode.get("execution_kind")
     if not isinstance(execution_kind, str) or execution_kind not in OPENCODE_EXECUTION_KINDS:
@@ -252,6 +351,9 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
     opencode_permission_counts = {"allow": 0, "ask": 0, "deny": 0}
     opencode_execution_kind_counts = {"prompt_only": 0, "programmatic": 0, "hybrid": 0}
     opencode_compatibility_counts = {"full": 0, "degraded": 0, "unsupported": 0}
+    opencode_tool_required_skill_count = 0
+    opencode_tool_mapped_skill_count = 0
+    opencode_tool_mapping_count = 0
 
     for skill_md in skill_files:
         rel = skill_md.relative_to(root)
@@ -314,19 +416,16 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
             else:
                 normalized_names[normalized] = skill_md
 
-            for field in ["tools", "task_tools"]:
-                val = data.get(field)
-                if val is None:
-                    continue
-                if val == "" or not isinstance(val, list):
-                    errors.append(f"{rel}: '{field}' must be a list or omitted")
-                    continue
-                for item in val:
-                    if not str(item).strip():
-                        errors.append(f"{rel}: '{field}' contains empty item")
+            legacy_tool_names = _collect_legacy_tool_names(data, errors, rel)
+            if legacy_tool_names:
+                opencode_tool_required_skill_count += 1
 
             opencode_meta = validate_opencode_metadata(
-                rel=rel, data=data, has_skill_py=has_skill_py, errors=errors
+                rel=rel,
+                data=data,
+                has_skill_py=has_skill_py,
+                legacy_tool_names=legacy_tool_names,
+                errors=errors,
             )
             if opencode_meta:
                 opencode_metadata_count += 1
@@ -339,6 +438,10 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
                     opencode_execution_kind_counts[execution_kind] += 1
                 if compatibility in opencode_compatibility_counts:
                     opencode_compatibility_counts[compatibility] += 1
+                mapping_count = int(opencode_meta.get("tool_mapping_count", 0))
+                opencode_tool_mapping_count += mapping_count
+                if legacy_tool_names and mapping_count == len(legacy_tool_names):
+                    opencode_tool_mapped_skill_count += 1
 
     stats = {
         "total_skill_directories": len(skill_dirs),
@@ -356,6 +459,9 @@ def validate_root(root: Path, opencode_compatible: bool = False) -> tuple[int, l
         "opencode_compatibility_full_count": opencode_compatibility_counts["full"],
         "opencode_compatibility_degraded_count": opencode_compatibility_counts["degraded"],
         "opencode_compatibility_unsupported_count": opencode_compatibility_counts["unsupported"],
+        "opencode_tool_required_skill_count": opencode_tool_required_skill_count,
+        "opencode_tool_mapped_skill_count": opencode_tool_mapped_skill_count,
+        "opencode_tool_mapping_count": opencode_tool_mapping_count,
     }
 
     exit_code = 1 if errors else 0
@@ -408,6 +514,9 @@ def main(argv: list[str] | None = None) -> int:
             f"degraded={stats['opencode_compatibility_degraded_count']} "
             f"unsupported={stats['opencode_compatibility_unsupported_count']}"
         )
+        print(f"opencode tool-required skills: {stats['opencode_tool_required_skill_count']}")
+        print(f"opencode tool-mapped skills: {stats['opencode_tool_mapped_skill_count']}")
+        print(f"opencode tool mappings: {stats['opencode_tool_mapping_count']}")
 
     if errors:
         print("\nValidation errors:")

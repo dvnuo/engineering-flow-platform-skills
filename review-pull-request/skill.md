@@ -32,6 +32,15 @@ opencode:
   capability_tags:
     - prompt-only
     - tools-required
+  tool_mappings:
+    github_get_pr: efp_github_get_pr
+    github_get_pr_files: efp_github_get_pr_files
+    github_get_pr_file_patch: efp_github_get_pr_file_patch
+    github_get_pr_diff: efp_github_get_pr_diff
+    github_get_pr_comments: efp_github_get_pr_comments
+    github_list_pr_reviews: efp_github_list_pr_reviews
+    github_add_pr_review_comment: efp_github_add_pr_review_comment
+    github_add_comment: efp_github_add_comment
 ---
 
 # Skill: review-pull-request
