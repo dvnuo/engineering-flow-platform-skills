@@ -24,6 +24,14 @@ tools:
   - github_add_pr_review_comment
   - github_add_comment
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---
 
 # Skill: review-pull-request

@@ -18,6 +18,13 @@ strategy:
   - "3. 每轮推进一个重点：normal path、edge case、exception、mock strategy。"
   - "4. 结果以测试设计为主，不强制展开完整实现代码。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Java Unit Test Planner

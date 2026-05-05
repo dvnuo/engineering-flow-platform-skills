@@ -9,6 +9,14 @@ triggers:
   - build requirements yaml from jira and docs
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - native-only
+    - programmatic
 ---
 Use this skill to aggregate requirement context from Jira, Confluence, and GitHub document sources into a normalized requirements artifact.
 

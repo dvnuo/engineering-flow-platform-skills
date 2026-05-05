@@ -17,6 +17,13 @@ strategy:
   - "2. 信息不足时 ASK_USER（如发布范围、关键业务影响）。"
   - "3. 输出最小可执行测试点与回归建议，最后 FINISH。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # PR to Test Points

@@ -20,6 +20,14 @@ when_to_use:
 references:
   - ref-template.md
 model: ""
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---
 
 # Skill: create-pull-request

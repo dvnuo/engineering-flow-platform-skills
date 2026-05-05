@@ -20,6 +20,14 @@ strategy:
   - "3. 每轮推进一个步骤：先理解 issue，再产出 scenario 草稿，最后 FINISH。"
   - "4. 工具仅在明确需要获取 issue 信息时使用，不做投机式查询。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---
 
 # Jira to Cucumber Tests

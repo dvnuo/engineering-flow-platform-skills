@@ -11,4 +11,12 @@ strategy:
   - Read the reference files to understand the context
   - Summarize what you learned from the reference files
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+    - tools-required
 ---

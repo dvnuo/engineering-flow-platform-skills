@@ -9,6 +9,14 @@ triggers:
   - summarize research sources for bundle
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - native-only
+    - programmatic
 ---
 Use this skill to synthesize research findings and open questions from source systems into the bundle research notes artifact.
 

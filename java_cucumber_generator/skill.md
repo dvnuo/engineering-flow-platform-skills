@@ -18,6 +18,13 @@ strategy:
   - "3. 简单需求可一次 EXECUTE；复杂需求分多轮推进，最终 FINISH 总结可落地清单。"
   - "4. 不要一次性铺开过多实现细节；优先补齐验收规则与边界行为。"
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Java Cucumber Generator

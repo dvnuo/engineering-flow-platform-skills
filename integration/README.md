@@ -3,9 +3,15 @@
 This smoke script validates the source Skills repository only.
 
 It checks:
-- native EFP skill format
-- OpenCode-compatible normalized names
+- production root native EFP skill format
+- production root OpenCode-compatible metadata and normalized names
+- integration fixtures OpenCode-compatible metadata
 - validator unit tests
+
+Integration fixture note:
+- `integration/fixtures/opencode-deterministic-fixture/skill.md` is intentionally not part of production skills.
+- It may use `permission.default=allow` because it is deterministic and only used by smoke/integration checks.
+- It must not call tools and must return `EFP_SKILL_FIXTURE_OK` when invoked by future runtime-level smoke tests.
 
 It does not:
 - generate .opencode/skills

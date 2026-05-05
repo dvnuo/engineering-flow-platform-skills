@@ -30,6 +30,39 @@ Skill names with underscores are allowed as EFP names. The runtime converter nor
 
     collect_requirements_to_bundle -> collect-requirements-to-bundle
 
+Every production `skill.md` frontmatter must include:
+
+```yaml
+opencode:
+  execution_kind: prompt_only | programmatic | hybrid
+  compatibility: full | degraded | unsupported
+  permission:
+    default: allow | ask | deny
+  capability_tags:
+    - ...
+```
+
+- Production skills should not use `permission.default=allow`.
+- Prompt-only and tools-required production skills should default to `ask`.
+- Native-only / unsupported skills must use `deny`.
+- `allow` is reserved for the deterministic integration fixture under `integration/fixtures`.
+
+Python-backed skills (skills that include `skill.py`) execute in native EFP runtime, but OpenCode converter currently does not execute `skill.py`. Therefore those skills must be marked:
+
+```yaml
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+```
+
+Integration fixtures:
+- live under `integration/fixtures`
+- are not part of production skills
+- support dual-runtime smoke coverage
+- may use `permission.default=allow` for deterministic test behavior
+
 ## Required repository structure
 
 ```text
@@ -64,6 +97,13 @@ triggers:
   - natural language trigger
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 Body instructions...
 ```
@@ -75,6 +115,7 @@ Run:
 ```bash
 python scripts/validate_skills.py
 python scripts/validate_skills.py --opencode-compatible
+python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 ```
 
 The script verifies:
@@ -86,7 +127,20 @@ The script verifies:
 - validator fails if a nested `skills/` directory is present
 
 
-OpenCode compatibility mode (`--opencode-compatible`) adds normalized-name collision checks and validates `tools`/`task_tools` list typing. Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
+OpenCode compatibility mode (`--opencode-compatible`) also verifies:
+
+- normalized OpenCode skill-name collisions
+- `tools`/`task_tools` must be lists (if present)
+- `opencode` metadata exists and is a mapping
+- `opencode.execution_kind` is one of `prompt_only`, `programmatic`, `hybrid`
+- `opencode.compatibility` is one of `full`, `degraded`, `unsupported`
+- `opencode.permission.default` is one of `allow`, `ask`, `deny`
+- `opencode.capability_tags` is a non-empty list of non-empty strings
+- Python-backed skills cannot declare `execution_kind: prompt_only`
+- Python-backed skills cannot claim `compatibility: full`
+- unsupported skills must use `opencode.permission.default: deny`
+
+Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
 
 
 ## T13 acceptance commands
@@ -96,6 +150,7 @@ Required Skills repo checks:
 ```bash
 python scripts/validate_skills.py
 python scripts/validate_skills.py --opencode-compatible
+python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 python -m pytest -q
 integration/scripts/smoke_skills.sh
 ```

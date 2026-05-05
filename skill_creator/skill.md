@@ -13,6 +13,13 @@ metadata:
     anyBins: []
     env: []
     config: []
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
 ---
 
 # Skill Creator

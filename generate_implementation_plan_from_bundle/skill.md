@@ -9,6 +9,14 @@ triggers:
   - create bundle implementation plan yaml
 tools: []
 output_format: markdown
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - native-only
+    - programmatic
 ---
 Use this skill to create a structured implementation plan for execution teams from bundle context.
 
