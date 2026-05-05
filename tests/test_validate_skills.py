@@ -494,6 +494,68 @@ Body
     assert stats["opencode_tool_mapping_count"] == 0
 
 
+def test_validate_root_rejects_duplicate_tool_mapping_key(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "duplicate-tool-mapping", """---
+name: duplicate-tool-mapping
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+tools:
+  - jira_get_issue
+opencode:
+  execution_kind: prompt_only
+  compatibility: degraded
+  permission:
+    default: ask
+  capability_tags:
+    - test
+  tool_mappings:
+    jira_get_issue: efp_wrong
+    jira_get_issue: efp_jira_get_issue
+---
+Body
+""")
+    exit_code, errors, stats = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any(
+        ("duplicate key" in err or "duplicate frontmatter key" in err)
+        and "jira_get_issue" in err
+        for err in errors
+    )
+    assert stats["opencode_tool_mapped_skill_count"] == 0
+    assert stats["opencode_tool_mapping_count"] == 0
+
+
+def test_validate_root_rejects_duplicate_top_level_frontmatter_key(tmp_path: Path) -> None:
+    _write_skill(tmp_path, "duplicate-top-level", """---
+name: duplicate-top-level
+name: duplicate-top-level-again
+description: sample
+version: 1.0.0
+owner: test
+triggers:
+  - x
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - test
+---
+Body
+""")
+    exit_code, errors, _ = validate_root(tmp_path, opencode_compatible=True)
+    assert exit_code == 1
+    assert any(
+        ("duplicate key" in err or "duplicate frontmatter key" in err)
+        and "name" in err
+        for err in errors
+    )
+
+
 def test_current_repository_passes_t13_opencode_validation() -> None:
     repo_root = Path(__file__).resolve().parents[1]
 

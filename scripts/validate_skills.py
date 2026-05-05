@@ -12,6 +12,33 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 
+if yaml is not None:
+    class UniqueKeySafeLoader(yaml.SafeLoader):
+        pass
+
+    def _construct_unique_mapping(loader, node, deep=False):
+        loader.flatten_mapping(node)
+        mapping = {}
+        for key_node, value_node in node.value:
+            key = loader.construct_object(key_node, deep=deep)
+            if key in mapping:
+                raise yaml.constructor.ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"found duplicate key {key!r}",
+                    key_node.start_mark,
+                )
+            value = loader.construct_object(value_node, deep=deep)
+            mapping[key] = value
+        return mapping
+
+    UniqueKeySafeLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        _construct_unique_mapping,
+    )
+else:  # pragma: no cover
+    UniqueKeySafeLoader = None
+
 IGNORE_DIRS = {".git", ".github", "scripts", "__pycache__"}
 REQUIRED_KEYS = {"name", "description", "version", "owner"}
 OPENCODE_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -54,7 +81,7 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
     if yaml is not None:
         try:
-            loaded = yaml.safe_load(frontmatter_text)
+            loaded = yaml.load(frontmatter_text, Loader=UniqueKeySafeLoader)
         except yaml.YAMLError as exc:
             return {}, [f"invalid frontmatter yaml: {exc}"]
         if loaded is None:
@@ -67,6 +94,8 @@ def parse_frontmatter(content: str) -> tuple[dict[str, object], list[str]]:
 
 
 def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], list[str]]:
+    errors: list[str] = []
+
     def parse_scalar(raw: str) -> object:
         cleaned = raw.strip()
         if (
@@ -90,6 +119,19 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
         parsed = parse_scalar(raw)
         return parsed if isinstance(parsed, str) else str(parsed)
 
+    def _skip_nested_block(start_i: int, parent_indent: int) -> int:
+        j = start_i + 1
+        while j < len(fm_lines):
+            raw_next = fm_lines[j]
+            if not raw_next.strip():
+                j += 1
+                continue
+            next_indent = len(raw_next) - len(raw_next.lstrip(" "))
+            if next_indent <= parent_indent:
+                break
+            j += 1
+        return j
+
     def parse_mapping(start: int, base_indent: int) -> tuple[dict[str, object], int]:
         data: dict[str, object] = {}
         i = start
@@ -110,6 +152,13 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
                 continue
             key = parse_scalar(m.group(1))
             value = m.group(2)
+            if key in data:
+                errors.append(f"duplicate frontmatter key {key!r}")
+                if value.strip():
+                    i += 1
+                else:
+                    i = _skip_nested_block(i, indent)
+                continue
             if value.strip() == "[]":
                 data[key] = []
                 i += 1
@@ -145,7 +194,7 @@ def parse_frontmatter_fallback(fm_lines: list[str]) -> tuple[dict[str, object], 
         return data, i
 
     parsed, _ = parse_mapping(0, 0)
-    return parsed, []
+    return parsed, errors
 
 
 def _is_non_empty_string_list(value: object) -> bool:
