@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.export_skills_contract import build_contract, main
+import pytest
+
+from scripts.export_skills_contract import ContractValidationError, build_contract, main
 from scripts.validate_skills import validate_root
 
 
@@ -110,6 +112,8 @@ opencode:
     second = build_contract(tmp_path, scope="production")
 
     assert first == second
+    encoded = json.dumps(first, ensure_ascii=False, sort_keys=True)
+    assert str(tmp_path) not in encoded
 
 
 def test_main_writes_pretty_json(tmp_path: Path) -> None:
@@ -190,3 +194,97 @@ def test_integration_fixture_contract_allows_deterministic_allow() -> None:
         skill for skill in contract["skills"] if skill["name"] == "opencode-deterministic-fixture"
     )
     assert fixture_skill["opencode"]["permission_default"] == "allow"
+
+
+def test_build_contract_rejects_validation_errors(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path / "invalid",
+        """---
+name: invalid
+description: Missing opencode metadata
+version: 1.0.0
+owner: engineering-flow-platform
+triggers:
+  - /invalid
+---
+""",
+    )
+
+    with pytest.raises(ContractValidationError) as exc:
+        build_contract(tmp_path, scope="production")
+
+    assert any("missing or invalid 'opencode' mapping" in err for err in exc.value.errors)
+
+
+def test_build_contract_rejects_invalid_scope(tmp_path: Path) -> None:
+    _write_skill(
+        tmp_path / "valid",
+        """---
+name: valid
+description: Valid skill
+version: 1.0.0
+owner: engineering-flow-platform
+triggers:
+  - /valid
+opencode:
+  execution_kind: prompt_only
+  compatibility: full
+  permission:
+    default: ask
+  capability_tags:
+    - prompt-only
+---
+""",
+    )
+
+    with pytest.raises(ValueError) as exc:
+        build_contract(tmp_path, scope="bad-scope")
+
+    assert "invalid scope" in str(exc.value)
+
+
+def test_build_contract_rejects_missing_root(tmp_path: Path) -> None:
+    missing = tmp_path / "missing"
+    with pytest.raises(FileNotFoundError):
+        build_contract(missing, scope="production")
+
+
+def test_contract_does_not_export_body_reference_body_skill_py_or_absolute_paths(tmp_path: Path) -> None:
+    skill_dir = tmp_path / "metadata-only"
+    _write_skill(
+        skill_dir,
+        """---
+name: metadata-only
+description: Metadata only skill
+version: 1.0.0
+owner: engineering-flow-platform
+triggers:
+  - /metadata-only
+references:
+  - ref.md
+opencode:
+  execution_kind: programmatic
+  compatibility: unsupported
+  permission:
+    default: deny
+  capability_tags:
+    - python-backed
+---
+BODY_SHOULD_NOT_EXPORT
+""",
+    )
+    (skill_dir / "ref.md").write_text("REFERENCE_SHOULD_NOT_EXPORT", encoding="utf-8")
+    (skill_dir / "skill.py").write_text("PYTHON_SHOULD_NOT_EXPORT", encoding="utf-8")
+
+    contract = build_contract(tmp_path, scope="production")
+    encoded = json.dumps(contract, ensure_ascii=False, sort_keys=True)
+
+    assert "BODY_SHOULD_NOT_EXPORT" not in encoded
+    assert "REFERENCE_SHOULD_NOT_EXPORT" not in encoded
+    assert "PYTHON_SHOULD_NOT_EXPORT" not in encoded
+    assert str(tmp_path) not in encoded
+
+    skill = contract["skills"][0]
+    assert skill["python_backed"] is True
+    assert skill["references"] == ["ref.md"]
+    assert skill["path"] == "metadata-only/skill.md"

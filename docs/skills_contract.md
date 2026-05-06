@@ -18,6 +18,10 @@ Skills contract 是给 Portal、native runtime、opencode-runtime 和 integratio
 - `stats`
 - `skills`
 
+固定值：
+- `schema_version`: fixed string `efp.skills.contract.v1`
+- `scope`: `production` or `integration-fixtures`
+
 每个 skill record 字段：
 - `path`
 - `directory`
@@ -65,3 +69,53 @@ python scripts/export_skills_contract.py --root integration/fixtures --scope int
 - 不读取 references 正文。
 - 不生成 OpenCode assets。
 - 不连接 Kubernetes 或 runtime service。
+
+
+## Minimal JSON example
+
+```json
+{
+  "schema_version": "efp.skills.contract.v1",
+  "scope": "production",
+  "stats": {
+    "total_skill_directories": 21,
+    "total_skill_md_discovered": 21
+  },
+  "skills": [
+    {
+      "path": "review-pull-request/skill.md",
+      "directory": "review-pull-request",
+      "name": "review-pull-request",
+      "normalized_opencode_name": "review-pull-request",
+      "description": "...",
+      "version": "1.0.0",
+      "owner": "engineering-flow-platform",
+      "triggers": [],
+      "tools": [],
+      "task_tools": [],
+      "references": [],
+      "python_backed": false,
+      "opencode": {
+        "execution_kind": "prompt_only",
+        "compatibility": "full",
+        "permission_default": "ask",
+        "capability_tags": [],
+        "tool_mappings": {}
+      }
+    }
+  ]
+}
+```
+
+## CLI exit codes
+
+- `0`: contract exported successfully
+- `1`: validation failed; no output file is written
+- `2`: invalid root or invalid CLI arguments
+
+## Programmatic API
+
+`build_contract(root, scope)` validates before exporting. It raises:
+- `FileNotFoundError` when root does not exist or is not a directory
+- `ContractValidationError` when validator fails
+- `ValueError` when scope is invalid

@@ -164,7 +164,9 @@ python scripts/export_skills_contract.py --root integration/fixtures --scope int
 
 The exporter output is deterministic metadata only (no runtime execution, no `.opencode` generation). CI and integration smoke both validate this exporter output. Do not commit generated JSON files unless a future release process explicitly requires it.
 
-The script verifies:
+The exporter first runs `validate_skills.py --opencode-compatible` as a gate. If validation fails, no contract file is written.
+
+The validator verifies:
 
 - Every skill directory containing `skill.py` or `skill.md` has a `skill.md`
 - `skill.md` includes required frontmatter fields

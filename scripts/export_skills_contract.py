@@ -18,6 +18,14 @@ from scripts.validate_skills import (  # noqa: E402
 
 
 SCHEMA_VERSION = "efp.skills.contract.v1"
+VALID_SCOPES = {"production", "integration-fixtures"}
+
+
+class ContractValidationError(ValueError):
+    def __init__(self, errors: list[str], stats: dict[str, int] | None = None) -> None:
+        super().__init__("\n".join(errors))
+        self.errors = errors
+        self.stats = stats or {}
 
 
 def _string_list(value: object) -> list[str]:
@@ -69,10 +77,31 @@ def _skill_record(root: Path, skill_md: Path) -> dict[str, object]:
     }
 
 
+def _validate_root_for_contract(root: Path) -> dict[str, int]:
+    if not root.exists() or not root.is_dir():
+        raise FileNotFoundError(f"skills root not found or not a directory: {root}")
+
+    exit_code, errors, stats = validate_root(root, opencode_compatible=True)
+    if exit_code != 0:
+        raise ContractValidationError(errors, stats)
+
+    return stats
+
+
 def build_contract(root: Path, scope: str) -> dict[str, object]:
-    _, _, stats = validate_root(root, opencode_compatible=True)
+    if scope not in VALID_SCOPES:
+        raise ValueError(
+            f"invalid scope {scope!r}; expected one of: integration-fixtures, production"
+        )
+
+    root = root.resolve()
+    stats = _validate_root_for_contract(root)
+
     errors: list[str] = []
     _, skill_files = discover_skill_files(root, errors)
+    if errors:
+        raise ContractValidationError(errors, stats)
+
     records = [_skill_record(root, skill_md) for skill_md in skill_files]
     records.sort(key=lambda item: (str(item["normalized_opencode_name"]), str(item["path"])))
     return {
@@ -100,18 +129,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--pretty", action="store_true", help="pretty-print JSON with 2-space indentation")
     args = parser.parse_args(argv)
 
-    root = args.root.resolve()
-    if not root.exists() or not root.is_dir():
-        print(f"skills root not found or not a directory: {root}", file=sys.stderr)
+    try:
+        contract = build_contract(args.root, scope=args.scope)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
         return 2
-
-    exit_code, validation_errors, _ = validate_root(root, opencode_compatible=True)
-    if exit_code != 0:
-        for err in validation_errors:
+    except ContractValidationError as exc:
+        for err in exc.errors:
             print(f"- {err}", file=sys.stderr)
         return 1
-
-    contract = build_contract(root, scope=args.scope)
+    except ValueError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     dump_kwargs: dict[str, object] = {"ensure_ascii": False, "sort_keys": True}
     if args.pretty:
         dump_kwargs["indent"] = 2

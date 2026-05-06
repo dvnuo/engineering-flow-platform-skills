@@ -25,4 +25,4 @@ python scripts/export_skills_contract.py \
   --pretty
 python -m json.tool "${TMP_DIR}/skills-fixtures-contract.json" >/dev/null
 
-python -m pytest -q tests/test_validate_skills.py
+python -m pytest -q

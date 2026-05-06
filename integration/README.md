@@ -6,7 +6,7 @@ It checks:
 - production root native EFP skill format
 - production root OpenCode-compatible metadata and normalized names
 - integration fixtures OpenCode-compatible metadata
-- validator unit tests
+- validator and contract exporter unit tests
 - machine-readable contract export for production and fixtures to a temporary directory
 
 Integration fixture note:
