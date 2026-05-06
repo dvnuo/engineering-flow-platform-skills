@@ -32,6 +32,16 @@ jobs:
       - name: Validate OpenCode integration fixtures
         run: python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 
+      - name: Export production skills contract
+        run: |
+          python scripts/export_skills_contract.py --scope production --output /tmp/skills-contract.json --pretty
+          python -m json.tool /tmp/skills-contract.json >/dev/null
+
+      - name: Export integration fixture skills contract
+        run: |
+          python scripts/export_skills_contract.py --root integration/fixtures --scope integration-fixtures --output /tmp/skills-fixtures-contract.json --pretty
+          python -m json.tool /tmp/skills-fixtures-contract.json >/dev/null
+
       - name: Run tests
         run: python -m pytest -q
 
