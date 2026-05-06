@@ -153,6 +153,17 @@ python scripts/validate_skills.py --opencode-compatible
 python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
 ```
 
+## Machine-readable Skills contract
+
+Export deterministic JSON metadata contract for production and integration fixtures:
+
+```bash
+python scripts/export_skills_contract.py --scope production --pretty
+python scripts/export_skills_contract.py --root integration/fixtures --scope integration-fixtures --pretty
+```
+
+The exporter output is deterministic metadata only (no runtime execution, no `.opencode` generation). CI and integration smoke both validate this exporter output. Do not commit generated JSON files unless a future release process explicitly requires it.
+
 The script verifies:
 
 - Every skill directory containing `skill.py` or `skill.md` has a `skill.md`
