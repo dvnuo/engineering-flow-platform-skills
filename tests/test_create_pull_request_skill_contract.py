@@ -64,3 +64,51 @@ def test_create_pull_request_body_preserves_user_base_branch_rule() -> None:
 
     assert "do not override user-provided base" in content
     assert "to develop" in content
+
+
+
+def test_create_pull_request_skill_uses_tools_contract_names() -> None:
+    data, _ = _load_skill()
+
+    tools = data.get("tools")
+    task_tools = data.get("task_tools")
+    assert isinstance(tools, list)
+    assert isinstance(task_tools, list)
+
+    opencode = data.get("opencode")
+    assert isinstance(opencode, dict)
+    tool_mappings = opencode.get("tool_mappings")
+    assert isinstance(tool_mappings, dict)
+
+    native_tools = set(tools) | set(task_tools)
+    assert native_tools == {
+        "git_clone",
+        "run_command",
+        "github_get_default_branch",
+        "github_create_pull_request",
+    }
+
+    assert native_tools == set(tool_mappings.keys())
+    for native_tool in native_tools:
+        assert tool_mappings[native_tool] == f"efp_{native_tool}"
+
+
+
+def test_create_pull_request_skill_repo_url_happy_path_is_specific() -> None:
+    _, content = _load_skill()
+
+    assert "https://github.com/dvnuo/engineering-flow-platform-portal" in content
+    assert "feature/20260504-opencode-integrated" in content
+    assert "to develop" in content
+    assert "git_clone(repo_url=" in content
+    assert 'branch="feature/20260504-opencode-integrated"' in content
+    assert "origin/develop...HEAD" in content
+    assert "github_create_pull_request" in content
+    assert "dry_run=false" in content
+
+
+
+def test_create_pull_request_skill_does_not_allow_local_checkout_question_for_repo_url() -> None:
+    _, content = _load_skill()
+
+    assert "Do not ask for local checkout path when repo_url is provided" in content
