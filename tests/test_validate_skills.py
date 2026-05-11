@@ -580,7 +580,7 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
     assert stats["opencode_compatibility_unsupported_count"] == 5
     assert stats["opencode_tool_required_skill_count"] == 6
     assert stats["opencode_tool_mapped_skill_count"] == 6
-    assert stats["opencode_tool_mapping_count"] == 24
+    assert stats["opencode_tool_mapping_count"] == 25
 
 
 def test_validate_root_rejects_nested_skills_directory(tmp_path: Path) -> None:
