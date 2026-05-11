@@ -41,12 +41,33 @@ opencode:
 
 # Skill: create-pull-request
 
+## Repository input modes
+
+This skill supports two repository modes:
+
+1. Current local repository mode:
+   - Use the current working directory only when it is a git work tree.
+
+2. Runtime-prepared repository mode:
+   - If the runtime prompt says "Repository has been prepared at: <path>", all local git inspection commands MUST run from that path.
+   - Do not run git inspection from `/workspace` unless `/workspace/.git` exists.
+   - Do not ask where the local checkout is mounted when the user already provided `in git repo <url>` and the runtime provided a prepared path.
+
+## Repository preparation expectations
+
+- If the user provides `in git repo <url> from branch <head> to <base>`, prefer the runtime-prepared repository path injected by the adapter.
+- If a prepared path is not provided and the runtime has not checked out the repo, ask one blocking question only if local checkout information is truly required.
+- Do not invent a local checkout path.
+- Do not use raw curl or ungoverned API calls to create the PR.
+
 ## Execution Contract (strict)
 STEP 1: Execute phases in order. Do not skip steps.
-STEP 2: Use `run_command` for local git inspection and prefer git evidence over assumptions.
+STEP 2: Use `run_command` for local git inspection, and when a prepared repo path is provided all local git inspection commands must run from that path.
 STEP 3: Do not call `github_create_pull_request` before drafting PR content.
-STEP 4: If required info is missing or ambiguous, ask the user instead of guessing.
-STEP 5: Stop after either creating the PR or asking one blocking question.
+STEP 4: If the user provided source/base branch explicitly, do not override them with `github_get_default_branch`.
+STEP 5: `base` is required before PR creation.
+STEP 6: If `github_create_pull_request` / `efp_github_create_pull_request` is unavailable, stop and report the exact missing tool blocker. Do not use raw curl.
+STEP 7: Stop after either creating the PR or asking one blocking question.
 
 ## Phase 0 — Parse and prepare repository
 1. Parse from user input:
@@ -87,11 +108,14 @@ STEP 5: Stop after either creating the PR or asking one blocking question.
 5. Infer GitHub owner/repo only when clear; if ambiguous, ask user.
 
 ## Phase 2 — Collect change information
-1. Gather summary with `git diff --stat`.
-2. Gather changed files with `git diff --name-only`.
-3. Review recent commits with `git log --oneline -5`.
-4. If base is known, prefer comparison like `git diff --stat origin/<base>...HEAD`.
+1. Gather summary with `cd "$REPO_DIR" && git diff --stat`.
+2. Gather changed files with `cd "$REPO_DIR" && git diff --name-only`.
+3. Review recent commits with `cd "$REPO_DIR" && git log --oneline -5`.
+4. If base is known, prefer comparison like `cd "$REPO_DIR" && git diff --stat "origin/<base>...HEAD"`.
 5. Inspect detailed per-file diffs only when needed.
+6. If user specified `from branch <head>`, treat that head branch as authoritative from user/runtime preflight context.
+7. If current checked-out branch does not match explicit `<head>`, report blocker and stop without creating PR.
+8. If base branch was explicitly provided as `to <base>`, do not call `github_get_default_branch` to override it.
 
 ## Phase 3 — Determine base branch
 1. If user provided `base_branch`, keep it.
@@ -118,6 +142,8 @@ Do not create PR unless all are reliable:
 - head branch/current branch
 - PR title
 - PR body
+If workspace is dirty, PR can still proceed from committed branch history, but note uncommitted changes in Risks / Notes.
+If head branch identity is not reliable, stop and ask one concise blocking question.
 If anything critical is missing, ask one concise blocking question and stop.
 
 ## Phase 6 — Create PR or ask user
