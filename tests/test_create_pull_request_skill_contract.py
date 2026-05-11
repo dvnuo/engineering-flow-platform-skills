@@ -53,10 +53,18 @@ def test_create_pull_request_body_contains_required_contract_clauses() -> None:
     assert "git repo <url>" in content
     assert "git_clone" in content
     assert "dry_run=false" in content
+    assert "base=\"develop\"" in content
+    assert "head=\"feature/20260504-opencode-integrated\"" in content
     assert "prepared_repo_path" in content
     assert "Do not ask for local checkout path when repo_url is provided" in content
     assert "Do not use raw curl" in content
     assert "Do not use gh CLI" in content
+
+    assert "runtime-prepared" in content
+    assert "Repository has been prepared at" in content
+    assert "idempotency_key" in content
+    assert "create-pr:" in content
+    assert "origin/develop...HEAD" in content
 
 
 def test_create_pull_request_body_preserves_user_base_branch_rule() -> None:
@@ -105,6 +113,8 @@ def test_create_pull_request_skill_repo_url_happy_path_is_specific() -> None:
     assert "origin/develop...HEAD" in content
     assert "github_create_pull_request" in content
     assert "dry_run=false" in content
+    assert "base=\"develop\"" in content
+    assert "head=\"feature/20260504-opencode-integrated\"" in content
 
 
 
