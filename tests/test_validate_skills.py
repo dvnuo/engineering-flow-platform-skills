@@ -580,7 +580,14 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
     assert stats["opencode_compatibility_unsupported_count"] == 5
     assert stats["opencode_tool_required_skill_count"] == 6
     assert stats["opencode_tool_mapped_skill_count"] == 6
-    assert stats["opencode_tool_mapping_count"] == 24
+    expected_mapping_count = 0
+    for skill_md in repo_root.rglob("skill.md"):
+        data, fm_errors = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
+        assert fm_errors == []
+        opencode = data.get("opencode") if isinstance(data.get("opencode"), dict) else {}
+        mappings = opencode.get("tool_mappings") if isinstance(opencode.get("tool_mappings"), dict) else {}
+        expected_mapping_count += len(mappings)
+    assert stats["opencode_tool_mapping_count"] == expected_mapping_count
 
 
 def test_validate_root_rejects_nested_skills_directory(tmp_path: Path) -> None:

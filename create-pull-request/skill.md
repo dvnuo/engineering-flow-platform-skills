@@ -1,6 +1,6 @@
 ---
 name: create-pull-request
-description: Inspect local or runtime-prepared git evidence, draft a pull request, and create it only when repository, branch, and PR fields are reliable
+description: Inspect git evidence, draft a pull request, and create it only when required fields are reliable
 version: 1.0.0
 owner: devops-team
 triggers:
@@ -9,14 +9,17 @@ triggers:
   - open pr
   - /create-pull-request
 tools:
+  - git_clone
   - run_command
   - github_get_default_branch
   - github_create_pull_request
 task_tools:
+  - git_clone
   - run_command
 when_to_use:
   - Use when the user asks to open a PR from current local repository work.
-  - Use when the user provides a GitHub repository URL plus source and target branches for PR creation.
+  - Use when the user asks to create/open a pull request for a specified git repo URL and branch.
+  - Use when the request includes patterns like "in git repo <url> from branch <head> to <base>".
   - Use when PR content should be grounded in local git evidence before creation.
 references:
   - ref-template.md
@@ -30,6 +33,7 @@ opencode:
     - prompt-only
     - tools-required
   tool_mappings:
+    git_clone: efp_git_clone
     run_command: efp_run_command
     github_get_default_branch: efp_github_get_default_branch
     github_create_pull_request: efp_github_create_pull_request
@@ -65,15 +69,43 @@ STEP 5: `base` is required before PR creation.
 STEP 6: If `github_create_pull_request` / `efp_github_create_pull_request` is unavailable, stop and report the exact missing tool blocker. Do not use raw curl.
 STEP 7: Stop after either creating the PR or asking one blocking question.
 
+## Phase 0 — Parse and prepare repository
+1. Parse from user input:
+   - `repo_url`: substring after `git repo`
+   - `head_branch`: substring after `from branch`
+   - `base_branch`: substring after `to`
+2. Runtime-prepared repository mode:
+   - If runtime context includes `Repository has been prepared at: <path>`, set `prepared_repo_path` to that path first.
+   - In runtime-prepared mode, do not call `git_clone` again unless the provided path is missing/invalid and `repo_url` is present.
+   - All subsequent `run_command` calls must use `cwd=prepared_repo_path`.
+3. Else if `repo_url` is provided:
+   - Call `git_clone(repo_url=<repo_url>, branch=<head_branch if provided>, dry_run=false)`.
+   - On success, set `prepared_repo_path` to returned `target_dir`.
+   - On clone/fetch/checkout failure, report runtime checkout blocker and stop.
+   - Do not ask for local checkout path when repo_url is provided.
+4. Else:
+   - Use current workspace only if it is a git work tree.
+   - Do not run repository checks from `/workspace` unless `/workspace/.git` exists.
+   - Run `git rev-parse --is-inside-work-tree`; if not a git repo, ask one blocking question and stop.
+5. If `head_branch` is explicit:
+   - `git branch --show-current` must equal `head_branch`; mismatch is a blocker.
+6. Base selection rules:
+   - If `base_branch` is explicit, keep it and do not override user-provided base.
+   - Do not call `github_get_default_branch` to override an explicit `to <base>`.
+   - Never replace `develop` with `master` or `main` when user specified `to develop`.
+   - If `base_branch` is missing, call `github_get_default_branch`; if unavailable, infer from `origin/HEAD` or common branches; if still unreliable, ask one blocking question.
+7. Owner/repo inference rules:
+   - Prefer parsing owner/repo from `repo_url` first.
+   - Support `https://github.com/owner/repo(.git)` and `git@github.com:owner/repo(.git)`.
+   - If parsing fails, fallback to `git remote -v` evidence in prepared repo.
+   - If still ambiguous, ask one blocking question.
+
 ## Phase 1 — Check repository state
-1. Determine repository working directory:
-   - If runtime provided "Repository has been prepared at: <path>", use that path for all local git inspection commands.
-   - Otherwise use current working directory only if it is a git work tree.
-2. Confirm repository context with `cd "$REPO_DIR" && git rev-parse --is-inside-work-tree`.
-3. Get head branch with `cd "$REPO_DIR" && git branch --show-current`.
-4. Inspect working tree status with `cd "$REPO_DIR" && git status --short`.
-5. Inspect remotes with `cd "$REPO_DIR" && git remote -v`.
-6. Infer GitHub owner/repo from remotes only when clear; if ambiguous, ask user.
+1. Confirm repository context with `git rev-parse --is-inside-work-tree`.
+2. Get head branch with `git branch --show-current`.
+3. Inspect working tree status with `git status --short`.
+4. Inspect remotes with `git remote -v`.
+5. Infer GitHub owner/repo only when clear; if ambiguous, ask user.
 
 ## Phase 2 — Collect change information
 1. Gather summary with `cd "$REPO_DIR" && git diff --stat`.
@@ -86,14 +118,11 @@ STEP 7: Stop after either creating the PR or asking one blocking question.
 8. If base branch was explicitly provided as `to <base>`, do not call `github_get_default_branch` to override it.
 
 ## Phase 3 — Determine base branch
-1. Use user explicit `to <base>` from slash command/runtime context first.
-2. Otherwise use runtime-prepared context base branch when provided.
-3. Otherwise infer from strong local repository evidence.
-4. Call `github_get_default_branch` only when base was not explicitly provided and still cannot be resolved from runtime/local evidence.
-5. If base branch remains ambiguous, ask one blocking question and stop.
-6. Never override user-specified `to <base>` with a default branch result (for example, do not replace `develop` with `master`).
-7. Do not pass formatted markdown text as branch name.
-8. Do not guess `main` when base is missing.
+1. If user provided `base_branch`, keep it.
+2. Otherwise prefer `github_get_default_branch` with `owner`, `repo`.
+3. The tool may return formatted text: extract only raw branch name.
+4. If unavailable, infer cautiously from strong repo evidence.
+5. If base branch remains ambiguous, ask user and stop.
 
 ## Phase 4 — Draft PR content (required before PR creation)
 Prepare these sections first:
@@ -119,24 +148,33 @@ If anything critical is missing, ask one concise blocking question and stop.
 
 ## Phase 6 — Create PR or ask user
 - If ready, call `github_create_pull_request`.
-- Required args are `owner`, `repo`, `title`, `body`, `head`, `base`, `dry_run: false`, `idempotency_key`.
-- Use `idempotency_key` format: `create-pr:<owner>/<repo>:<head>:<base>`.
-- If runtime permission policy denies write access, report permission blocker and stop.
-- If no diff is found for `origin/<base>...HEAD`, ask user whether to proceed instead of creating an empty PR.
+- Required args: `owner`, `repo`, `title`, `body`, `head`, `base`, `dry_run=false`, and `idempotency_key` with format `create-pr:<owner>/<repo>:<head>:<base>`.
+- If tool returns existing/idempotent PR, treat as success and return PR URL.
+- If `github_create_pull_request` tool is unavailable, report a create-PR-tool blocker and stop.
+- If permission is denied, report a permission blocker and do not claim PR was created.
+- If GitHub API error occurs, return concise error summary plus prepared title/body; do not retry in an infinite loop.
 
-## Failure paths (must be explicit)
-- Missing repository context:
-  - If user did not provide repository URL and current directory is not a git repo, ask one blocking question for local checkout path.
-  - If user provided repository URL but runtime checkout/prepared path is missing or failed, report checkout blocker and stop (do not ask for local checkout path).
-- Missing create-PR tool:
-  - Report `github_create_pull_request` / `efp_github_create_pull_request` unavailable.
-  - Do not use raw curl.
-  - Do not claim PR was created when only draft text exists.
-- Permissions denied:
-  - Report write permission denied.
-  - Do not bypass permission controls.
+## Prohibitions
+- Do not use raw curl to create PRs.
+- Do not ask for local checkout path when repo_url is provided.
+- Do not use gh CLI as fallback for PR creation in this skill.
+- Do not override user-provided base from repo default branch.
+
+## Happy path example (must be executable)
+Input:
+`/create-pull-request in git repo https://github.com/dvnuo/engineering-flow-platform-portal from branch feature/20260504-opencode-integrated to develop`
+
+Expected tool order:
+1. `git_clone(repo_url="https://github.com/dvnuo/engineering-flow-platform-portal", branch="feature/20260504-opencode-integrated", dry_run=false)`
+2. `run_command(cmd="git rev-parse --is-inside-work-tree", cwd=<target_dir>)`
+3. `run_command(cmd="git branch --show-current", cwd=<target_dir>)`
+4. `run_command(cmd="git status --short", cwd=<target_dir>)`
+5. `run_command(cmd="git diff --stat origin/develop...HEAD", cwd=<target_dir>)` (or fallback)
+6. `run_command(cmd="git diff --name-only origin/develop...HEAD", cwd=<target_dir>)` (or fallback)
+7. `run_command(cmd="git log --oneline origin/develop..HEAD", cwd=<target_dir>)` (or fallback)
+8. `github_create_pull_request(..., head="feature/20260504-opencode-integrated", base="develop", dry_run=false, idempotency_key="create-pr:<owner>/<repo>:feature/20260504-opencode-integrated:develop")`
 
 ## Local vs GitHub distinction
-- Local inspection is performed with `run_command`.
+- Local inspection is performed with `run_command` using prepared repo cwd.
 - GitHub PR creation requires explicit `owner` and `repo`.
-- If remote parsing from `git remote -v` is unclear, ask user instead of guessing.
+- If remote parsing is unclear, ask user instead of guessing.
