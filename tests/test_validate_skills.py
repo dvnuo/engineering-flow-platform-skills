@@ -563,19 +563,19 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
 
     assert exit_code == 0, "\n".join(errors)
     assert errors == []
-    assert stats["total_skill_directories"] == 21
-    assert stats["total_skill_md_discovered"] == 21
+    assert stats["total_skill_directories"] == 22
+    assert stats["total_skill_md_discovered"] == 22
     assert stats["python_backed_skills_count"] == 5
     assert stats["opencode_compatible_enabled"] == 1
-    assert stats["opencode_normalized_skill_names"] == 21
-    assert stats["opencode_metadata_count"] == 21
+    assert stats["opencode_normalized_skill_names"] == 22
+    assert stats["opencode_metadata_count"] == 22
     assert stats["opencode_permission_default_allow_count"] == 0
-    assert stats["opencode_permission_default_ask_count"] == 16
+    assert stats["opencode_permission_default_ask_count"] == 17
     assert stats["opencode_permission_default_deny_count"] == 5
-    assert stats["opencode_execution_kind_prompt_only_count"] == 16
+    assert stats["opencode_execution_kind_prompt_only_count"] == 17
     assert stats["opencode_execution_kind_programmatic_count"] == 5
     assert stats["opencode_execution_kind_hybrid_count"] == 0
-    assert stats["opencode_compatibility_full_count"] == 10
+    assert stats["opencode_compatibility_full_count"] == 11
     assert stats["opencode_compatibility_degraded_count"] == 6
     assert stats["opencode_compatibility_unsupported_count"] == 5
     assert stats["opencode_tool_required_skill_count"] == 6

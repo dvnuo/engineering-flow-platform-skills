@@ -14,11 +14,13 @@ def test_create_pull_request_frontmatter_and_required_content() -> None:
     assert errors == []
 
     assert data["tools"] == [
+        "git_clone",
         "run_command",
         "github_get_default_branch",
         "github_create_pull_request",
     ]
     assert data["opencode"]["tool_mappings"] == {
+        "git_clone": "efp_git_clone",
         "run_command": "efp_run_command",
         "github_get_default_branch": "efp_github_get_default_branch",
         "github_create_pull_request": "efp_github_create_pull_request",
@@ -28,7 +30,7 @@ def test_create_pull_request_frontmatter_and_required_content() -> None:
         'Repository has been prepared at',
         'Do not run git inspection from `/workspace` unless `/workspace/.git` exists',
         'to <base>',
-        'dry_run: false',
+        'dry_run=false',
         'idempotency_key',
         'Do not use raw curl',
     ]
