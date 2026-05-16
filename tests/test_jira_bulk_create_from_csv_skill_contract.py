@@ -83,12 +83,44 @@ def test_jira_bulk_create_from_csv_body_contains_required_contract_clauses() -> 
         "customfield_<id>",
         "Never create Jira issues immediately",
         "explicit confirmation",
+        "--confirm-mapping",
+        "--apply-post-create-updates",
+        "requires_confirmation",
+        "ambiguous_columns",
+        "planned_post_create_updates",
     ]
 
     for fragment in required_fragments:
         assert fragment in content
 
     assert "status/resolution/comments/worklog/watchers/attachments" in content
+
+
+def test_jira_bulk_create_from_csv_confirm_mapping_is_conditional() -> None:
+    _, content = _load_skill()
+
+    assert (
+        "Actual creation may include `--confirm-mapping` only after the user has confirmed"
+        in content
+    )
+    assert (
+        "Do not add `--confirm-mapping` automatically just because the user asked to create"
+        in content
+    )
+    assert "always include `--confirm-mapping`" not in content.lower()
+
+
+def test_jira_bulk_create_from_csv_post_create_updates_require_confirmation() -> None:
+    _, content = _load_skill()
+
+    assert (
+        "Do not apply post-create updates unless the user explicitly confirms them"
+        in content
+    )
+    assert (
+        "Only if the user confirms, include `--apply-post-create-updates`"
+        in content
+    )
 
 
 def test_jira_bulk_create_from_csv_body_has_no_hardcoded_customfield_ids() -> None:

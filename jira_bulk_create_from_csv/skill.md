@@ -53,6 +53,9 @@ This skill fixes the safe workflow and command order only. It must not hardcode 
 10. If required fields are missing, stop and ask for missing values/defaults.
 11. If a field is present in example issue but absent from create metadata, do not put it in create payload. It may only be proposed as a post-create update if editmeta allows it.
 12. Do not copy system fields/status/resolution/comments/worklog/watchers/attachments from the template unless user explicitly asks.
+13. If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, do not run actual creation until the user explicitly confirms the mapping choices.
+14. Do not add `--confirm-mapping` automatically just because the user asked to create. The user must have reviewed the mapping table.
+15. Do not apply post-create updates unless the user explicitly confirms them after seeing the dry-run output.
 
 ## Required Command Sequence
 
@@ -123,6 +126,8 @@ jira issue bulk-create \
   --json
 ```
 
+Review `dry-run.json` before presenting the result. If it reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, explain that these are fields that cannot be set during initial create and may require post-create update calls after the issue keys exist.
+
 ### J. Present To User
 
 Present a concise markdown summary containing:
@@ -145,17 +150,58 @@ Present a concise markdown summary containing:
 - dry-run preview first 3 rows
 - exact command that will run after confirmation
 
-The confirmation prompt must require explicit user confirmation. Do not treat silence, implied consent, or a request to "continue" before seeing the dry-run as approval for creation.
+If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, include the ambiguous or low-confidence choices in the summary and ask the user to explicitly confirm the selected mapping choices. Actual creation may include `--confirm-mapping` only after the user has confirmed both the dry-run and the field mapping.
+
+If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, ask whether to apply post-create updates. Only if the user confirms, include `--apply-post-create-updates` in the actual creation command. If the user does not confirm post-create updates, create only the create-meta fields and clearly report which template fields were not applied.
+
+The confirmation prompt must require explicit user confirmation for creation. Mapping confirmation and post-create update application are separate explicit confirmations when those conditions exist. Do not treat silence, implied consent, or a request to "continue" before seeing the dry-run and mapping table as approval for creation.
 
 ### K. Create Only After Confirmation
 
-Only after explicit confirmation, run:
+Only after explicit confirmation, run the base creation command when `mapping-plan.json` has no `requires_confirmation` or `ambiguous_columns`:
 
 ```bash
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
   --yes \
+  --output created-results.json \
+  --json
+```
+
+If the user has explicitly confirmed ambiguous or low-confidence mappings after reviewing the mapping table, run creation with `--confirm-mapping`:
+
+```bash
+jira issue bulk-create \
+  --from-csv <CSV_PATH> \
+  --mapping mapping-plan.json \
+  --yes \
+  --confirm-mapping \
+  --output created-results.json \
+  --json
+```
+
+If, and only if, the user has also explicitly confirmed post-create updates after reviewing the dry-run, add `--apply-post-create-updates` to the actual creation command:
+
+```bash
+jira issue bulk-create \
+  --from-csv <CSV_PATH> \
+  --mapping mapping-plan.json \
+  --yes \
+  --apply-post-create-updates \
+  --output created-results.json \
+  --json
+```
+
+When both conditions apply and the user explicitly confirms both, include both conditional flags in the actual creation command:
+
+```bash
+jira issue bulk-create \
+  --from-csv <CSV_PATH> \
+  --mapping mapping-plan.json \
+  --yes \
+  --confirm-mapping \
+  --apply-post-create-updates \
   --output created-results.json \
   --json
 ```
@@ -168,6 +214,8 @@ After the create command finishes, report:
 - failed count
 - created issue keys
 - failed rows and reasons
+- whether post-create updates were applied
+- any post-create update failures
 - path to `mapping-plan.json`
 - path to `dry-run.json`
 - path to `created-results.json`
