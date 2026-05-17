@@ -43,19 +43,19 @@ This skill fixes the safe workflow and command order only. It must not hardcode 
    - uploaded CSV columns and sample rows
    - example Jira issue
    - global Jira field catalog
-   - project + issue type create metadata
    - edit metadata when needed
-5. Always run mapping and dry-run first.
-6. Always show mapping table and dry-run preview.
-7. Ask for explicit user confirmation before actual creation.
-8. Only after explicit confirmation, run `jira issue bulk-create ... --yes`.
-9. If any mapping confidence is low/ambiguous, ask the user to choose rather than creating.
-10. If required fields are missing, stop and ask for missing values/defaults.
-11. If a field is present in example issue but absent from create metadata, do not put it in create payload. It may only be proposed as a post-create update if editmeta allows it.
-12. Do not copy system fields/status/resolution/comments/worklog/watchers/attachments from the template unless user explicitly asks.
-13. If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, do not run actual creation until the user explicitly confirms the mapping choices.
-14. Do not add `--confirm-mapping` automatically just because the user asked to create. The user must have reviewed the mapping table.
-15. Do not apply post-create updates unless the user explicitly confirms creation and accepts the planned post-create updates after seeing the dry-run output.
+5. Attempt to inspect project + issue type create metadata, but if createmeta returns 404 or unavailable errors, continue with `jira issue map-csv --metadata-mode auto` so the CLI can fallback to editmeta-degraded metadata.
+6. Always run mapping and dry-run first.
+7. Always show mapping table and dry-run preview.
+8. Ask for explicit user confirmation before actual creation.
+9. Only after explicit confirmation, run `jira issue bulk-create ... --yes`.
+10. If any mapping confidence is low/ambiguous, ask the user to choose rather than creating.
+11. If required fields are missing, stop and ask for missing values/defaults.
+12. If a field is present in example issue but absent from create metadata, do not put it in create payload. It may only be proposed as a post-create update if editmeta allows it.
+13. Do not copy system fields/status/resolution/comments/worklog/watchers/attachments from the template unless user explicitly asks.
+14. If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, do not run actual creation until the user explicitly confirms the mapping choices.
+15. Do not add `--confirm-mapping` automatically just because the user asked to create. The user must have reviewed the mapping table.
+16. Do not apply post-create updates unless the user explicitly confirms creation and accepts the planned post-create updates after seeing the dry-run output.
 
 ## System fields and post-create updates
 
@@ -64,6 +64,26 @@ Reporter is a Jira system user field. It is commonly not accepted in the initial
 If the CSV includes Reporter and dry-run reports it as `planned_post_create_update`, explain that Reporter will be set after issue creation by the `jira issue bulk-create` workflow. Do not ask the user to troubleshoot Reporter manually or use raw Jira API calls unless the CLI create/update flow fails.
 
 The final explicit user confirmation can cover both issue creation and planned post-create updates when the mapping table and dry-run summary clearly show those updates, including the Reporter update phase. After that confirmation, include `--apply-post-create-updates` automatically when `planned_post_create_updates` are present and accepted.
+
+## Createmeta unavailable and editmeta-degraded mode
+
+Some Jira instances return HTTP 404 or other unavailable errors for all createmeta endpoints even when normal issue reads work. Treat these responses as createmeta unavailable rather than fatal. If `jira issue createmeta --from-issue <EXAMPLE> --json` fails with 404, `Issue Does Not Exist`, `null for uri`, or similar createmeta endpoint errors, do not stop the workflow.
+
+The example issue may still exist and remain usable as a template if this command succeeds:
+
+```bash
+jira issue get <EXAMPLE> --fields '*all' --expand names,schema,editmeta --json
+```
+
+When issue get succeeds but createmeta is unavailable, continue to mapping with CLI metadata fallback:
+
+```bash
+jira issue map-csv --metadata-mode auto ...
+```
+
+If `jira issue map-csv --metadata-mode auto` reports `metadata_mode` as `editmeta_degraded`, explain to the user that Jira createmeta is unavailable in this instance. In editmeta-degraded mode, the CLI will create each issue with minimal create fields, then apply the rest of the mapped fields after creation using post-create updates. The user must review the dry-run before create, including `planned_post_create_updates`.
+
+The normal path is `jira issue map-csv --metadata-mode auto`, dry-run, user confirmation, then `jira issue bulk-create --yes --apply-post-create-updates` when planned updates are accepted. Raw `jira api put` is only a last-resort troubleshooting step if the CLI bulk-create/update flow fails.
 
 ## Required Command Sequence
 
@@ -107,11 +127,16 @@ jira issue get <EXAMPLE> --fields '*all' --expand names,schema,editmeta --json
 jira field list --json
 ```
 
-### G. Inspect Create Metadata
+### G. Attempt Create Metadata Inspection
 
 ```bash
 jira issue createmeta --from-issue <EXAMPLE> --json
 ```
+
+- If it succeeds, use the result as diagnostic context.
+- If it fails with createmeta endpoint errors, record the error but continue.
+- Do not retry multiple raw createmeta variants unless the user explicitly asks.
+- Do not stop the workflow if issue get succeeded.
 
 ### H. Generate Mapping
 
@@ -119,6 +144,7 @@ jira issue createmeta --from-issue <EXAMPLE> --json
 jira issue map-csv \
   --from-csv <CSV_PATH> \
   --template-issue <EXAMPLE> \
+  --metadata-mode auto \
   --output mapping-plan.json \
   --json
 ```
@@ -129,6 +155,7 @@ jira issue map-csv \
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
+  --metadata-mode auto \
   --dry-run \
   --output dry-run.json \
   --json
@@ -155,10 +182,13 @@ Present a concise markdown summary containing:
 - ambiguous columns
 - required fields missing
 - blocked fields from template
+- metadata_mode
 - dry-run preview first 3 rows
 - exact command that will run after confirmation
 
 If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, include the ambiguous or low-confidence choices in the summary and ask the user to explicitly confirm the selected mapping choices. Actual creation may include `--confirm-mapping` only after the user has confirmed both the dry-run and the field mapping.
+
+If `metadata_mode` is `editmeta_degraded`, explain that create payload contains only project, issuetype, and summary; `planned_post_create_updates` contains the rest of the mapped fields; and actual creation requires `--apply-post-create-updates` after user confirmation.
 
 If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, clearly include those updates in the table or summary and ask for final explicit confirmation to create the issues with the planned post-create updates. This final confirmation can cover both creation and post-create updates if the user has seen the updates and accepts them. After confirmation, include `--apply-post-create-updates` automatically when planned post-create updates are present and accepted. If the user declines post-create updates, create only the create-meta fields and clearly report which fields were not applied.
 
@@ -172,6 +202,7 @@ Only after explicit confirmation, run the base creation command when `mapping-pl
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
+  --metadata-mode auto \
   --yes \
   --output created-results.json \
   --json
@@ -183,6 +214,7 @@ If the user has explicitly confirmed ambiguous or low-confidence mappings after 
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
+  --metadata-mode auto \
   --yes \
   --confirm-mapping \
   --output created-results.json \
@@ -195,11 +227,14 @@ If the final explicit confirmation accepts planned post-create updates after the
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
+  --metadata-mode auto \
   --yes \
   --apply-post-create-updates \
   --output created-results.json \
   --json
 ```
+
+When mapping-plan or dry-run `metadata_mode` is `editmeta_degraded` and `planned_post_create_updates` are accepted, the final command must include `--apply-post-create-updates`.
 
 When mapping confirmation and planned post-create updates both apply, include both conditional flags after the user explicitly accepts both conditions. A single final confirmation may cover them if the mapping choices and planned updates are clearly shown:
 
@@ -207,6 +242,7 @@ When mapping confirmation and planned post-create updates both apply, include bo
 jira issue bulk-create \
   --from-csv <CSV_PATH> \
   --mapping mapping-plan.json \
+  --metadata-mode auto \
   --yes \
   --confirm-mapping \
   --apply-post-create-updates \
@@ -234,7 +270,7 @@ After the create command finishes, report:
 - Do not say a specific CSV column maps to a fixed Jira field. Mapping must be discovered every run.
 - Create payloads must use field ids accepted by Jira create metadata.
 - Custom fields must use the `customfield_<id>` id form, never only a display name.
-- Required fields must come from createmeta and the generated mapping plan, not assumptions.
+- In normal createmeta mode, required fields come from createmeta and the generated mapping plan. In editmeta-degraded mode, the CLI treats summary as the required initial create field and applies other mapped fields after creation.
 - If create metadata excludes a field found on the template issue, keep it out of the create payload.
 - If edit metadata allows a blocked template field after creation, propose it as a separate post-create update and ask for confirmation before any update.
 - Do not copy system fields, status, resolution, comments, worklog, watchers, or attachments from the template unless the user explicitly asks.
@@ -243,8 +279,8 @@ After the create command finishes, report:
 
 Example user request:
 
-> I uploaded testcases.csv. Please reference QA-1234 to bulk create Jira test cases, and run a dry-run first.
+> I uploaded testcases.csv. Please reference `<EXAMPLE>` to bulk create Jira test cases, and run a dry-run first.
 
 Example assistant behavior:
 
-> I will first read the CSV, QA-1234, Jira field catalog, and createmeta to generate field mappings and a dry-run; nothing will be created before your confirmation.
+> I will first read the CSV, `<EXAMPLE>`, Jira field catalog, and attempt createmeta inspection. If createmeta is unavailable, I will continue with `jira issue map-csv --metadata-mode auto` for fallback metadata, then generate a dry-run; nothing will be created before your confirmation.
