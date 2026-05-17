@@ -1,22 +1,22 @@
 ---
 name: test-scope-clarifier
-description: 在模糊需求下先澄清再输出测试范围（in/out scope、假设、开放问题）
+description: Clarify first, then output test scope for ambiguous requirements (in/out scope, assumptions, open questions)
 version: 1.0.0
 owner: qa-platform
 triggers:
   - clarify test scope
   - test scope
-  - 需求澄清测试范围
-  - 测试范围梳理
+  - Requirement clarification for test scope
+  - Test scope analysis
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 面对模糊需求，先识别不确定项并 ASK_USER 最小必要问题。"
-  - "2. 每轮只推进一个澄清点，避免一次提太多问题。"
-  - "3. 逐步沉淀 in scope / out of scope / assumptions / open questions。"
-  - "4. 最终 FINISH 给出可执行测试范围建议。"
+  - "1. For ambiguous requirements, first identify uncertainties and ASK_USER the minimum necessary questions."
+  - "2. Advance only one clarification point per round; avoid asking too many questions at once."
+  - "3. Gradually refine in scope / out of scope / assumptions / open questions."
+  - "4. Finally FINISH with actionable test scope recommendations."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -29,15 +29,15 @@ opencode:
 
 # Test Scope Clarifier
 
-这是一个高频多轮协作 skill，用于把“模糊需求”转成可执行测试范围。
+This is a high-frequency multi-round collaboration skill for turning ambiguous requirements into actionable test scope.
 
-## Skill Mode 推进方式
-- 先澄清，不急于输出最终方案。
-- 缺关键业务输入时必须 **[ASK_USER]**。
-- 每轮收敛一个关键不确定点并 **[EXECUTE]**。
-- 收敛后 **[FINISH]** 给出结构化范围建议。
+## Skill Mode Progression
+- Clarify first; do not rush to output the final solution.
+- When key business inputs are missing, you must **[ASK_USER]**.
+- Converge on one key uncertainty per round and **[EXECUTE]**.
+- After convergence, **[FINISH]** with structured scope recommendations.
 
-## 建议输出
+## Suggested Output
 - In Scope
 - Out of Scope
 - Assumptions

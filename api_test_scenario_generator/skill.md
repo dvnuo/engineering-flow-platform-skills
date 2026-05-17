@@ -1,22 +1,22 @@
 ---
 name: api-test-scenario-generator
-description: 基于接口需求与规则生成 API 测试场景（happy/validation/error/boundary）
+description: Generate API test scenarios (happy/validation/error/boundary) based on API requirements and rules
 version: 1.0.0
 owner: qa-platform
 triggers:
   - api test scenario
   - generate api tests
-  - 接口测试场景
-  - 生成 api 测试
+  - API test scenarios
+  - Generate API tests
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 识别接口路径、请求字段、响应结构、状态码与业务规则。"
-  - "2. 缺关键字段或判定规则时先 ASK_USER，再继续生成。"
-  - "3. 每轮推进一个核心步骤：先 happy path，再补 validation/error/boundary。"
-  - "4. 输出以可执行测试思路为主，不陷入实现细节。"
+  - "1. Identify endpoint paths, request fields, response schema, status codes, and business rules."
+  - "2. If key fields or validation rules are missing, ASK_USER first, then continue."
+  - "3. Advance one core step per round: happy path first, then validation/error/boundary."
+  - "4. Focus on executable test ideas, not implementation details."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -29,16 +29,16 @@ opencode:
 
 # API Test Scenario Generator
 
-用于在需求早期快速形成 API 测试覆盖草稿。
+Used to quickly draft API test coverage in early requirement stages.
 
-## Skill Mode 推进方式
-- 缺请求/响应关键定义时优先 **[ASK_USER]**。
-- 信息充分后 **[EXECUTE]** 当前最有价值测试分组。
-- 覆盖完整后 **[FINISH]** 汇总。
+## Skill Mode Progression
+- If key request/response definitions are missing, prioritize **[ASK_USER]**.
+- When information is sufficient, **[EXECUTE]** the most valuable current test group.
+- After coverage is complete, summarize with **[FINISH]**.
 
-## 结果建议结构
+## Suggested Result Structure
 - Happy Path
 - Validation Cases
 - Error Cases
 - Boundary Cases
-- 风险与待确认项
+- Risks and pending confirmations

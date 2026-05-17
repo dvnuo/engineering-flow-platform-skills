@@ -1,22 +1,22 @@
 ---
 name: bug-repro-test-designer
-description: 从缺陷描述生成复现路径、验证点和回归测试草稿
+description: Generate reproduction paths, validation points, and regression test drafts from bug descriptions
 version: 1.0.0
 owner: qa-platform
 triggers:
   - bug repro test
   - defect test design
-  - 缺陷复现场景
-  - 生成缺陷回归测试
+  - Bug reproduction scenarios
+  - Generate bug regression tests
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 先提炼复现前置条件、触发步骤、实际结果与期望结果。"
-  - "2. 缺少关键复现条件时 ASK_USER，不盲猜环境与数据。"
-  - "3. 每轮推进一个目标：先复现，再验证修复，再补回归范围。"
-  - "4. 最终 FINISH 给出可执行缺陷验证清单。"
+  - "1. First extract reproduction preconditions, trigger steps, actual results, and expected results."
+  - "2. When key reproduction conditions are missing, ASK_USER and do not blindly guess environment or data."
+  - "3. Advance one goal per round: reproduce first, then verify the fix, then expand regression scope."
+  - "4. Finally FINISH with an actionable defect-verification checklist."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -29,9 +29,9 @@ opencode:
 
 # Bug Repro Test Designer
 
-用于在缺陷分析与回归阶段快速形成测试行动方案。
+Used to quickly form test action plans during defect analysis and regression phases.
 
-## Skill Mode 推进方式
-- 缺复现条件时先 **[ASK_USER]**。
-- 信息足够后 **[EXECUTE]** 当前关键验证步骤。
-- 最终 **[FINISH]** 输出复现 + 回归清单。
+## Skill Mode Progression
+- When reproduction conditions are missing, start with **[ASK_USER]**.
+- When information is sufficient, **[EXECUTE]** the current key validation step.
+- Finally **[FINISH]** with reproduction + regression checklist.

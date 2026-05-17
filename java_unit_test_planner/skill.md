@@ -1,22 +1,22 @@
 ---
 name: java-unit-test-planner
-description: 根据类/方法需求生成 Java 单元测试设计思路（case/mocks/edge/exception）
+description: Generate Java unit test design ideas (cases/mocks/edge/exception) from class/method requirements
 version: 1.0.0
 owner: dev-qa-collab
 triggers:
   - java unit test
   - unit test planner
-  - 生成 java 单元测试思路
-  - java 测试设计
+  - Generate Java unit test ideas
+  - Java test design
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 先确定被测对象职责、输入输出、依赖与异常路径。"
-  - "2. 缺少方法签名或关键业务规则时 ASK_USER。"
-  - "3. 每轮推进一个重点：normal path、edge case、exception、mock strategy。"
-  - "4. 结果以测试设计为主，不强制展开完整实现代码。"
+  - "1. First determine the responsibilities, inputs/outputs, dependencies, and exception paths of the test target."
+  - "2. ASK_USER when method signatures or key business rules are missing."
+  - "3. Advance one focus per round: normal path, edge case, exception, mock strategy."
+  - "4. Focus on test design; full implementation code is not required."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -29,16 +29,16 @@ opencode:
 
 # Java Unit Test Planner
 
-用于开发与测试协作阶段快速形成 Java 单元测试计划。
+Used to quickly create a Java unit test plan during dev-test collaboration.
 
-## Skill Mode 推进方式
-- 信息缺口优先 **[ASK_USER]**。
-- 明确后逐步 **[EXECUTE]** 输出测试设计。
-- 覆盖完整后 **[FINISH]** 给出优先级与实施建议。
+## Skill Mode Progression
+- For information gaps, prioritize **[ASK_USER]**.
+- After clarification, gradually **[EXECUTE]** and output test design.
+- After coverage is complete, **[FINISH]** with priority and implementation suggestions.
 
-## 输出建议
-- Test Cases 列表
+## Suggested Output
+- Test Cases list
 - Mock Points
 - Edge Cases
 - Exception Paths
-- 优先级与重构建议
+- Priority and refactoring suggestions

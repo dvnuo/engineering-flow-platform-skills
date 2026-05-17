@@ -1,21 +1,21 @@
 ---
 name: pr-to-test-points
-description: 根据 PR 描述或变更内容提炼测试点与回归建议
+description: Extract test points and regression suggestions from PR descriptions or changes
 version: 1.0.0
 owner: qa-platform
 triggers:
   - pr test points
   - pull request test
-  - 根据 pr 生成测试点
-  - 代码变更测试点
+  - Generate test points from a PR
+  - Code-change test points
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 识别 PR 目标、改动范围、风险路径；必要时使用工具读取差异。"
-  - "2. 信息不足时 ASK_USER（如发布范围、关键业务影响）。"
-  - "3. 输出最小可执行测试点与回归建议，最后 FINISH。"
+  - "1. Identify PR goals, change scope, and risk paths; use tools to inspect diffs when needed."
+  - "2. If information is insufficient, ASK_USER (e.g., release scope, key business impact)."
+  - "3. Output minimum actionable test points and regression suggestions, then FINISH."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -28,9 +28,9 @@ opencode:
 
 # PR to Test Points
 
-用于把代码变更快速转成测试执行清单，适合提测前评审。
+Used to quickly convert code changes into a test execution checklist, suitable for pre-release review.
 
-## Skill Mode 特点
-- 可通过工具读取 PR/变更上下文。
-- 若业务背景缺失先 **[ASK_USER]**。
-- 每轮产出一个清晰测试增量并 **[EXECUTE]**。
+## Skill Mode Characteristics
+- Can use tools to read PR/change context.
+- If business context is missing, start with **[ASK_USER]**.
+- Produce one clear testing increment per round and **[EXECUTE]**.

@@ -1,13 +1,13 @@
 ---
 name: jira-bulk-create-from-csv
-description: 从 CSV 批量创建 Jira issue/test case，参考 example Jira ticket 自动发现字段与自定义字段映射；先映射和 dry-run，确认后创建。
+description: Bulk create Jira issues/test cases from CSV, using an example Jira ticket to auto-discover field and custom-field mappings; perform mapping and dry-run first, then create after confirmation.
 version: 1.0.0
 owner: qa-platform
 triggers:
-  - 上传 CSV 批量创建 Jira 测试用例
-  - 参考某个 Jira ticket 创建
-  - 按 example ticket 的字段结构创建 Jira issue
-  - testcases.csv 批量导入 Jira
+  - Upload CSV to bulk create Jira test cases
+  - Create by referencing a Jira ticket
+  - Create Jira issues using the field structure from an example ticket
+  - Bulk import testcases.csv into Jira
   - CSV to Jira issues
   - bulk create Jira test cases from CSV
 planning_mode: required
@@ -243,8 +243,8 @@ After the create command finishes, report:
 
 Example user request:
 
-> 我上传了 testcases.csv，请参考 QA-1234 批量创建 Jira 测试用例，先 dry-run。
+> I uploaded testcases.csv. Please reference QA-1234 to bulk create Jira test cases, and run a dry-run first.
 
 Example assistant behavior:
 
-> 我会先读取 CSV、QA-1234、Jira 字段目录和 createmeta，生成字段映射与 dry-run；确认前不会创建。
+> I will first read the CSV, QA-1234, Jira field catalog, and createmeta to generate field mappings and a dry-run; nothing will be created before your confirmation.

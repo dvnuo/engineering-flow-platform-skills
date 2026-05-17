@@ -1,22 +1,22 @@
 ---
 name: feature-stepdef-scaffolder
-description: 基于已有 Gherkin feature 补全 step definition 设计骨架
+description: Complete step-definition design scaffolds based on existing Gherkin features
 version: 1.0.0
 owner: qa-platform
 triggers:
   - step definition scaffold
   - feature to step defs
-  - 根据 feature 补 step definitions
-  - cucumber step 骨架
+  - Generate step definitions from feature files
+  - Cucumber step scaffold
 tools: []
 planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 先解析现有 feature 场景与参数。"
-  - "2. 缺少技术约定（测试框架、目录、命名）时 ASK_USER。"
-  - "3. 分轮输出 step definitions 骨架与组织建议。"
-  - "4. 避免一次性生成大量低质量样板代码。"
+  - "1. First parse existing feature scenarios and parameters."
+  - "2. ASK_USER when technical conventions are missing (test framework, directory, naming)."
+  - "3. Output step-definition scaffold and organization suggestions in rounds."
+  - "4. Avoid generating a large amount of low-quality boilerplate at once."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -29,10 +29,10 @@ opencode:
 
 # Feature StepDef Scaffolder
 
-用于已有 feature 文件时快速生成 step definition 设计骨架。
+Used to quickly generate step-definition design scaffolds from existing feature files.
 
-## Skill Mode 推进方式
-- 输入已有 feature 文本或路径。
-- 缺技术约定先 **[ASK_USER]**。
-- 按场景逐步 **[EXECUTE]** 输出 step 结构。
-- 收敛后 **[FINISH]** 给出落地建议。
+## Skill Mode Progression
+- Input existing feature text or path.
+- If technical conventions are missing, start with **[ASK_USER]**.
+- Output step structures scenario by scenario via **[EXECUTE]**.
+- After convergence, **[FINISH]** with implementation suggestions.
