@@ -16,7 +16,7 @@
 - jira-issue-creator
 - pdf-editor
 - docker-deploy
-- api文档生成器  # Chinese allowed
+- API documentation generator  # Chinese allowed
 ```
 
 ### Bad Names

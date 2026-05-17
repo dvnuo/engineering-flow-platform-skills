@@ -1,13 +1,13 @@
 ---
 name: jira-to-manual-test-cases
-description: 根据 Jira issue 生成人工测试用例（preconditions/steps/expected/negative）
+description: Generate manual test cases (preconditions/steps/expected/negative) from Jira issues
 version: 1.0.0
 owner: qa-platform
 triggers:
   - jira manual test
   - issue to manual test
   - jira test case
-  - 根据 jira 生成人工测试
+  - Generate manual tests from Jira
 tools:
   - jira_get_issue
   - jira_search
@@ -15,10 +15,10 @@ planning_mode: required
 execution_style: stepwise
 ask_user_policy: blocked_only
 strategy:
-  - "1. 先提取 issue 的目标、验收标准、依赖条件。"
-  - "2. 信息不足时 ASK_USER 补关键前置条件与判定标准。"
-  - "3. 生成结构化人工测试：preconditions、steps、expected、negative。"
-  - "4. 每轮只推进一小步，避免一次输出过长不可评审内容。"
+  - "1. First extract the issue objective, acceptance criteria, and dependencies."
+  - "2. When information is insufficient, ASK_USER for key preconditions and evaluation criteria."
+  - "3. Generate structured manual tests: preconditions, steps, expected, negative."
+  - "4. Advance one small step per round to avoid overly long, unreviewable output."
 output_format: markdown
 opencode:
   execution_kind: prompt_only
@@ -35,17 +35,17 @@ opencode:
 
 # Jira to Manual Test Cases
 
-用于生成偏 QA 执行视角的人工测试用例，而非自动化代码。
+Used to generate manual test cases from a QA execution perspective, not automation code.
 
-## Skill Mode 推进方式
-- 先确认测试目标和范围。
-- 若信息不足，先 **[ASK_USER]**。
-- 逐步给出可执行的人工测试用例草稿并 **[EXECUTE]**。
-- 完整后汇总测试清单并 **[FINISH]**。
+## Skill Mode Progression
+- First confirm testing goals and scope.
+- If information is insufficient, start with **[ASK_USER]**.
+- Gradually provide actionable manual test case drafts and **[EXECUTE]**.
+- After completion, summarize the test checklist and **[FINISH]**.
 
-## 输出建议
+## Suggested Output
 - Preconditions
 - Test Steps
 - Expected Results
-- Negative/异常路径
-- 执行优先级建议
+- Negative/exception paths
+- Execution priority suggestions
