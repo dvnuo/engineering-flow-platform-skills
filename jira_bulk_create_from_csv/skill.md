@@ -55,7 +55,15 @@ This skill fixes the safe workflow and command order only. It must not hardcode 
 12. Do not copy system fields/status/resolution/comments/worklog/watchers/attachments from the template unless user explicitly asks.
 13. If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, do not run actual creation until the user explicitly confirms the mapping choices.
 14. Do not add `--confirm-mapping` automatically just because the user asked to create. The user must have reviewed the mapping table.
-15. Do not apply post-create updates unless the user explicitly confirms them after seeing the dry-run output.
+15. Do not apply post-create updates unless the user explicitly confirms creation and accepts the planned post-create updates after seeing the dry-run output.
+
+## System fields and post-create updates
+
+Reporter is a Jira system user field. It is commonly not accepted in the initial create payload, even when the CSV contains a Reporter column and the user expects the value to be set.
+
+If the CSV includes Reporter and dry-run reports it as `planned_post_create_update`, explain that Reporter will be set after issue creation by the `jira issue bulk-create` workflow. Do not ask the user to troubleshoot Reporter manually or use raw Jira API calls unless the CLI create/update flow fails.
+
+The final explicit user confirmation can cover both issue creation and planned post-create updates when the mapping table and dry-run summary clearly show those updates, including the Reporter update phase. After that confirmation, include `--apply-post-create-updates` automatically when `planned_post_create_updates` are present and accepted.
 
 ## Required Command Sequence
 
@@ -126,7 +134,7 @@ jira issue bulk-create \
   --json
 ```
 
-Review `dry-run.json` before presenting the result. If it reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, explain that these are fields that cannot be set during initial create and may require post-create update calls after the issue keys exist.
+Review `dry-run.json` before presenting the result. If it reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, explain that these are fields that cannot be set during initial create and can be applied by the CLI after the issue keys exist. If Reporter appears there, explain that Reporter is a system user field and will be set after issue creation when the planned post-create updates are accepted.
 
 ### J. Present To User
 
@@ -152,9 +160,9 @@ Present a concise markdown summary containing:
 
 If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, include the ambiguous or low-confidence choices in the summary and ask the user to explicitly confirm the selected mapping choices. Actual creation may include `--confirm-mapping` only after the user has confirmed both the dry-run and the field mapping.
 
-If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, ask whether to apply post-create updates. Only if the user confirms, include `--apply-post-create-updates` in the actual creation command. If the user does not confirm post-create updates, create only the create-meta fields and clearly report which template fields were not applied.
+If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, clearly include those updates in the table or summary and ask for final explicit confirmation to create the issues with the planned post-create updates. This final confirmation can cover both creation and post-create updates if the user has seen the updates and accepts them. After confirmation, include `--apply-post-create-updates` automatically when planned post-create updates are present and accepted. If the user declines post-create updates, create only the create-meta fields and clearly report which fields were not applied.
 
-The confirmation prompt must require explicit user confirmation for creation. Mapping confirmation and post-create update application are separate explicit confirmations when those conditions exist. Do not treat silence, implied consent, or a request to "continue" before seeing the dry-run and mapping table as approval for creation.
+The confirmation prompt must require explicit user confirmation for creation. It may also include the planned post-create updates in the same final confirmation when the table clearly shows those updates. Mapping confirmation still requires explicit acceptance when `requires_confirmation` or `ambiguous_columns` are present. Do not treat silence, implied consent, or a request to "continue" before seeing the dry-run and mapping table as approval for creation.
 
 ### K. Create Only After Confirmation
 
@@ -181,7 +189,7 @@ jira issue bulk-create \
   --json
 ```
 
-If, and only if, the user has also explicitly confirmed post-create updates after reviewing the dry-run, add `--apply-post-create-updates` to the actual creation command:
+If the final explicit confirmation accepts planned post-create updates after the user reviews the dry-run and update table, add `--apply-post-create-updates` to the actual creation command:
 
 ```bash
 jira issue bulk-create \
@@ -193,7 +201,7 @@ jira issue bulk-create \
   --json
 ```
 
-When both conditions apply and the user explicitly confirms both, include both conditional flags in the actual creation command:
+When mapping confirmation and planned post-create updates both apply, include both conditional flags after the user explicitly accepts both conditions. A single final confirmation may cover them if the mapping choices and planned updates are clearly shown:
 
 ```bash
 jira issue bulk-create \
