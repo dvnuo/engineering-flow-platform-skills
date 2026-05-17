@@ -88,6 +88,8 @@ def test_jira_bulk_create_from_csv_body_contains_required_contract_clauses() -> 
         "requires_confirmation",
         "ambiguous_columns",
         "planned_post_create_updates",
+        "System fields and post-create updates",
+        "Reporter is a Jira system user field",
     ]
 
     for fragment in required_fragments:
@@ -114,13 +116,33 @@ def test_jira_bulk_create_from_csv_post_create_updates_require_confirmation() ->
     _, content = _load_skill()
 
     assert (
-        "Do not apply post-create updates unless the user explicitly confirms them"
+        "Do not apply post-create updates unless the user explicitly confirms creation"
         in content
     )
     assert (
-        "Only if the user confirms, include `--apply-post-create-updates`"
+        "include `--apply-post-create-updates` automatically when planned post-create updates are present and accepted"
         in content
     )
+    assert (
+        "This final confirmation can cover both creation and post-create updates"
+        in content
+    )
+
+
+def test_jira_bulk_create_from_csv_reporter_post_create_guidance() -> None:
+    _, content = _load_skill()
+
+    required_fragments = [
+        "Reporter is a Jira system user field",
+        "If the CSV includes Reporter and dry-run reports it as `planned_post_create_update`",
+        "Reporter will be set after issue creation",
+        "Do not ask the user to troubleshoot Reporter manually or use raw Jira API calls unless the CLI create/update flow fails",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+    assert "jira api put" not in content.lower()
 
 
 def test_jira_bulk_create_from_csv_body_has_no_hardcoded_customfield_ids() -> None:
