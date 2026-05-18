@@ -190,11 +190,23 @@ If `mapping-plan.json` contains `requires_confirmation` or `ambiguous_columns`, 
 
 If `metadata_mode` is `editmeta_degraded`, explain that create payload contains only project, issuetype, and summary; `planned_post_create_updates` contains the rest of the mapped fields; and actual creation requires `--apply-post-create-updates` after user confirmation.
 
-If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, clearly include those updates in the table or summary and ask for final explicit confirmation to create the issues with the planned post-create updates. This final confirmation can cover both creation and post-create updates if the user has seen the updates and accepts them. After confirmation, include `--apply-post-create-updates` automatically when planned post-create updates are present and accepted. If the user declines post-create updates, create only the create-meta fields and clearly report which fields were not applied.
+If the dry-run reports `planned_post_create_updates` or `post_create_updates_planned_not_applied`, clearly include those updates in the table or summary and ask for final explicit confirmation to create the issues with the planned post-create updates. This final confirmation can cover both creation and post-create updates if the user has seen the updates and accepts them. After confirmation, include `--apply-post-create-updates` automatically when planned post-create updates are present and accepted.
+
+If metadata_mode is normal createmeta mode and the user declines post-create updates, the agent may create only the create-time fields, but must clearly report which planned update fields were not applied.
+
+If metadata_mode is editmeta_degraded and `planned_post_create_updates` exist, and the user declines post-create updates, do not create. Explain that editmeta-degraded mode requires post-create updates to apply mapped CSV fields beyond summary. The CLI returns `post_create_updates_required` when actual create is attempted without `--apply-post-create-updates`. Ask the user either to confirm `--apply-post-create-updates` or to regenerate/edit the mapping so only summary/minimal create fields remain.
 
 The confirmation prompt must require explicit user confirmation for creation. It may also include the planned post-create updates in the same final confirmation when the table clearly shows those updates. Mapping confirmation still requires explicit acceptance when `requires_confirmation` or `ambiguous_columns` are present. Do not treat silence, implied consent, or a request to "continue" before seeing the dry-run and mapping table as approval for creation.
 
 ### K. Create Only After Confirmation
+
+Before choosing any actual create command, inspect `mapping-plan.json` and `dry-run.json` for `metadata_mode` and `planned_post_create_updates`.
+
+When mapping-plan or dry-run `metadata_mode` is `editmeta_degraded` and `planned_post_create_updates` exist:
+
+- Do not run the base `jira issue bulk-create ... --yes` command.
+- Only run actual create after the user accepts planned updates, using `--apply-post-create-updates`.
+- If the user rejects updates, stop and summarize what would not be applied.
 
 Only after explicit confirmation, run the base creation command when `mapping-plan.json` has no `requires_confirmation` or `ambiguous_columns`:
 

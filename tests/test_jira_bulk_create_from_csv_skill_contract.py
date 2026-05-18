@@ -191,6 +191,27 @@ def test_jira_bulk_create_from_csv_normal_path_uses_cli_metadata_auto() -> None:
     assert "The normal path is `jira issue map-csv --metadata-mode auto`" in content
 
 
+def test_jira_bulk_create_from_csv_editmeta_degraded_declined_updates_stop_create() -> None:
+    _, content = _load_skill()
+
+    required_fragments = [
+        "If metadata_mode is editmeta_degraded",
+        "do not create",
+        "post_create_updates_required",
+        "--apply-post-create-updates",
+        "Do not run the base `jira issue bulk-create ... --yes` command",
+        "If the user rejects updates, stop and summarize what would not be applied",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+    assert (
+        "If the user declines post-create updates, create only the create-meta fields"
+        not in content
+    )
+
+
 def test_jira_bulk_create_from_csv_body_has_no_hardcoded_customfield_ids() -> None:
     _, content = _load_skill()
 
