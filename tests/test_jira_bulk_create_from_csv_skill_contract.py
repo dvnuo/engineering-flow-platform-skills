@@ -29,8 +29,9 @@ def test_jira_bulk_create_from_csv_frontmatter_contract() -> None:
     assert data["name"] == "jira-bulk-create-from-csv"
     assert "jira-bulk-create-from-csv" in data["name"]
     assert data["description"] == (
-        "从 CSV 批量创建 Jira issue/test case，参考 example Jira ticket 自动发现字段与自定义字段映射；"
-        "先映射和 dry-run，确认后创建。"
+        "Bulk create Jira issues/test cases from CSV, using an example Jira ticket to "
+        "auto-discover field and custom-field mappings; perform mapping and dry-run "
+        "first, then create after confirmation."
     )
     assert data["version"] == "1.0.0"
     assert data["owner"] == "qa-platform"
@@ -88,6 +89,10 @@ def test_jira_bulk_create_from_csv_body_contains_required_contract_clauses() -> 
         "requires_confirmation",
         "ambiguous_columns",
         "planned_post_create_updates",
+        "--metadata-mode auto",
+        "editmeta-degraded",
+        "editmeta_degraded",
+        "createmeta unavailable",
         "System fields and post-create updates",
         "Reporter is a Jira system user field",
     ]
@@ -142,10 +147,78 @@ def test_jira_bulk_create_from_csv_reporter_post_create_guidance() -> None:
     for fragment in required_fragments:
         assert fragment in content
 
-    assert "jira api put" not in content.lower()
+    assert (
+        "Raw `jira api put` is only a last-resort troubleshooting step if the CLI bulk-create/update flow fails"
+        in content
+    )
+
+
+def test_jira_bulk_create_from_csv_createmeta_unavailable_fallback() -> None:
+    _, content = _load_skill()
+
+    required_fragments = [
+        "If `jira issue createmeta --from-issue <EXAMPLE> --json` fails with 404",
+        "do not stop the workflow",
+        "Do not stop the workflow if issue get succeeded",
+        "continue to mapping with CLI metadata fallback",
+        "jira issue map-csv --metadata-mode auto",
+        "Jira createmeta is unavailable in this instance",
+        "create payload contains only project, issuetype, and summary",
+        "actual creation requires `--apply-post-create-updates` after user confirmation",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+
+def test_jira_bulk_create_from_csv_normal_path_uses_cli_metadata_auto() -> None:
+    _, content = _load_skill()
+
+    required_fragments = [
+        "jira issue map-csv",
+        "jira issue bulk-create",
+        "--metadata-mode auto",
+        "--dry-run",
+        "--yes",
+        "explicit confirmation",
+        "planned_post_create_updates",
+        "--apply-post-create-updates",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+    assert "The normal path is `jira issue map-csv --metadata-mode auto`" in content
+
+
+def test_jira_bulk_create_from_csv_editmeta_degraded_declined_updates_stop_create() -> None:
+    _, content = _load_skill()
+
+    required_fragments = [
+        "If metadata_mode is editmeta_degraded",
+        "do not create",
+        "post_create_updates_required",
+        "--apply-post-create-updates",
+        "Do not run the base `jira issue bulk-create ... --yes` command",
+        "If the user rejects updates, stop and summarize what would not be applied",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+    assert (
+        "If the user declines post-create updates, create only the create-meta fields"
+        not in content
+    )
 
 
 def test_jira_bulk_create_from_csv_body_has_no_hardcoded_customfield_ids() -> None:
     _, content = _load_skill()
 
     assert re.search(r"customfield_\d+", content) is None
+
+
+def test_jira_bulk_create_from_csv_body_has_no_hardcoded_example_issue_key() -> None:
+    _, content = _load_skill()
+
+    assert re.search(r"\b[A-Z][A-Z0-9]+-\d+\b", content) is None
