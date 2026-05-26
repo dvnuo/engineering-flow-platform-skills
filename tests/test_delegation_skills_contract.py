@@ -75,6 +75,23 @@ def test_github_delegation_skills_use_gh_cli_and_reactions() -> None:
         assert "efp_github_" not in content
 
 
+def test_github_pr_review_prefers_inline_comments_with_suggestions() -> None:
+    _, content = _load_skill("delegation-github-pr-review")
+
+    required_fragments = [
+        "Inline comments are the preferred/default writeback for line-anchorable findings",
+        "Any finding tied to a changed line should normally be posted as an inline PR comment with `gh api`",
+        "gh api -X POST /repos/{owner}/{repo}/pulls/{number}/comments",
+        "```suggestion",
+        "suggestion_provided",
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in content
+
+    assert "efp_github_" not in content
+
+
 def test_jira_delegation_skills_manage_comment_writeback() -> None:
     required_fragments = [
         "jira issue comment add",

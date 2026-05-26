@@ -24,9 +24,9 @@ opencode:
 
 # Delegation GitHub PR Review
 
-Use this skill for an `agent_async_task` created from a `github_pr_review` Portal Delegation. The task represents a GitHub user who was directly requested as a pull request reviewer. Perform a concise, high-signal review and return the final review body for Portal to post as a PR comment.
+Use this skill for an `agent_async_task` created from a `github_pr_review` Portal Delegation. The task represents a GitHub user who was directly requested as a pull request reviewer. Perform a concise, high-signal review, post line-specific findings as inline PR comments where practical, and return the final review body for Portal to post as a PR comment.
 
-All GitHub reads and optional writes must use the GitHub CLI: `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not approve the PR, request changes, submit a formal GitHub review state, or post the final top-level PR comment yourself. Portal posts `final_response`.
+All GitHub reads and writebacks must use the GitHub CLI: `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not approve the PR, request changes, submit a formal GitHub review state, or post the final top-level PR comment yourself. Portal posts `final_response`.
 
 ## Runtime Input
 
@@ -122,9 +122,45 @@ For each finding, include:
 
 Do not speculate. If the diff lacks enough context, fetch the surrounding file from the PR head or state the uncertainty explicitly.
 
-## Optional Inline Comments
+## Inline Comment Writeback
 
-Normally return only `final_response` and let Portal post the final PR comment. If you choose to add inline review comments through `gh api`, only do so for precise, line-anchorable issues. Record every inline write in `external_actions`, including endpoint, path, line, and summary.
+Inline comments are the preferred/default writeback for line-anchorable findings. Any finding tied to a changed line should normally be posted as an inline PR comment with `gh api` so the author can find it at the relevant diff hunk.
+
+Use inline comments for actionable correctness, security, reliability, compatibility, migration, testing, or maintainability findings that can be anchored to a changed line. Do not spam low-value style comments, but do not hide actionable line-specific findings only in `final_response`.
+
+Create inline comments with the PR head SHA and the changed file path/line from the diff:
+
+```bash
+gh api -X POST /repos/{owner}/{repo}/pulls/{number}/comments \
+  -f body="$comment_body" \
+  -f commit_id="$head_sha" \
+  -f path="$path" \
+  -F line="$line" \
+  -f side=RIGHT
+```
+
+For multi-line findings, use the GitHub PR review comment fields for a line range when the range is precise and supported by the diff. Anchor to `side=RIGHT` for changed lines in the PR head; use `side=LEFT` only when the issue can only be anchored to removed/base-side code.
+
+Try to include a GitHub suggestion block when the fix is small, precise, syntactically valid, and can be applied directly on the commented line or selected range:
+
+````markdown
+```suggestion
+replacement code
+```
+````
+
+Do not include a suggestion block if the fix is uncertain, requires broader design decisions, spans unrelated code, or cannot be represented safely for the selected line/range. If no suggestion block is safe, still include concrete fix guidance in the inline comment.
+
+Record every inline comment write in `external_actions` with at least:
+
+- endpoint
+- path
+- line or line range
+- severity
+- summary
+- `suggestion_provided: true|false`
+
+The final `final_response` should summarize review scope, list posted inline comments, and include only broad/non-line-anchorable findings or validation gaps. Avoid duplicating the full inline comment bodies unless needed for context.
 
 Do not add broad final comments, approval reviews, or request-changes reviews.
 
@@ -167,7 +203,9 @@ Required fields:
 
 ## Review Focus
 
-## Findings
+## Inline Comments Posted
+
+## Broad Findings
 
 ### Blocking
 
