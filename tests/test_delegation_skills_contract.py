@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from scripts.validate_skills import parse_frontmatter
@@ -107,6 +108,34 @@ def test_jira_delegation_skills_manage_comment_writeback() -> None:
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
+
+
+def test_jira_delegation_skills_assume_preconfigured_private_runtime() -> None:
+    required_fragments = [
+        "private Jira service",
+        "configured EFP `jira` CLI/tool",
+        "already configured in the runtime",
+        "jira commands --json",
+        "jira schema ... --json",
+        "environment blocker",
+    ]
+    forbidden_patterns = [
+        r"\baccountId\b",
+        r"\bJira Cloud\b",
+        r"\blogin\b",
+        r"\bcredentials?\b",
+        r"\btokens?\b",
+        r"\bauth setup\b",
+        r"\bauthentication\b",
+        r"\bauthorization\b",
+    ]
+
+    for name in JIRA_SKILLS:
+        _, content = _load_skill(name)
+        for fragment in required_fragments:
+            assert fragment in content
+        for pattern in forbidden_patterns:
+            assert not re.search(pattern, content, flags=re.IGNORECASE)
 
 
 def test_jira_assignee_reassigns_back_to_reporter() -> None:

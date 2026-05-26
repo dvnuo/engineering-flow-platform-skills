@@ -25,9 +25,11 @@ opencode:
 
 # Delegation Jira Mention
 
-Use this skill for an `agent_async_task` created from a `jira_mention` Portal Delegation. The task represents a configured Jira user mentioned in a Jira issue comment. The skill owns Jira writeback: add a start comment immediately and edit that same comment with the final answer or result.
+Use this skill for an `agent_async_task` created from a `jira_mention` Portal Delegation. The task represents an issue/mention delegation from a Jira issue comment. The skill owns Jira writeback: add a start comment immediately and edit that same comment with the final answer or result.
 
-Jira operations should use the EFP `jira` CLI from `engineering-flow-platform-tools` through Bash. Use `jira schema` or `jira commands` only when needed to discover exact command support. Do not rely on Portal for the Jira final reply; return `reply_handled_by_skill: true`.
+The private Jira service and the configured EFP `jira` CLI/tool are already configured in the runtime. Jira operations must use that `jira` tool through Bash. Use `jira commands --json` or `jira schema ... --json` only when needed to discover command shape, options, or supported fields. Do not rely on Portal for the Jira final reply; return `reply_handled_by_skill: true`.
+
+If a Jira command fails because the runtime is not configured or the configured tool is unavailable, treat it as an environment blocker. Report the exact failed command and error in `final_response`, `blockers`, `audit_trace`, and `external_actions`; do not provide setup instructions.
 
 ## Runtime Input
 

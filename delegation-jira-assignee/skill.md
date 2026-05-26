@@ -25,9 +25,11 @@ opencode:
 
 # Delegation Jira Assignee
 
-Use this skill for an `agent_async_task` created from a `jira_assignee` Portal Delegation. The task represents a Jira issue assigned to the configured agent or user. The skill owns Jira writeback: add a start comment, edit that same comment with the final result, and assign the issue back to the reporter when finished.
+Use this skill for an `agent_async_task` created from a `jira_assignee` Portal Delegation. The task represents a Jira issue assigned through the issue delegation. The skill owns Jira writeback: add a start comment immediately, edit that same comment with the final result, and assign the issue back to the reporter when finished.
 
-Jira operations should use the EFP `jira` CLI from `engineering-flow-platform-tools` through Bash. Use `jira schema` or `jira commands` only when needed to discover the exact supported command shape. Do not rely on Portal for the Jira final reply; return `reply_handled_by_skill: true`.
+The private Jira service and the configured EFP `jira` CLI/tool are already configured in the runtime. Jira operations must use that `jira` tool through Bash. Use `jira commands --json` or `jira schema ... --json` only when needed to discover command shape, options, or supported fields. Do not rely on Portal for the Jira final reply; return `reply_handled_by_skill: true`.
+
+If a Jira command fails because the runtime is not configured or the configured tool is unavailable, treat it as an environment blocker. Report the exact failed command and error in `final_response`, `blockers`, `audit_trace`, and `external_actions`; do not provide setup instructions.
 
 ## Runtime Input
 
@@ -116,19 +118,13 @@ The `final_response` field in the output must be exactly the same text written t
 
 After the final comment update, assign the Jira issue back to the reporter.
 
-Extract reporter identity from the issue fields. Prefer the CLI assignment command:
+Use the reporter identifier returned by `jira issue get`, then run the normal CLI assignment command:
 
 ```bash
-jira issue assign <issue-key-or-url> --user <reporter.name-or-key> --json
+jira issue assign <issue-key-or-url> --user <reporter-identifier> --json
 ```
 
-If Jira Cloud exposes only `accountId` and the CLI assignment command cannot use it, confirm the exact API path from `jira commands`, `jira schema`, or observed CLI behavior. Then use a raw Jira API fallback only when necessary, for example:
-
-```bash
-jira api put <issue-assignee-endpoint> --body-file <tmpfile> --json
-```
-
-The fallback body should contain the reporter account id, such as `{"accountId":"..."}`. Record assignment success or failure in `external_actions`. Set `jira_reassigned_to_reporter` to `true` only when reassignment succeeds.
+If the reporter identifier is missing from the fetched issue or unsupported by the configured `jira` tool, record a blocker or assignment action failure instead of inventing identity details. Record assignment success or failure in `external_actions`. Set `jira_reassigned_to_reporter` to `true` only when reassignment succeeds.
 
 ## Output Contract
 
