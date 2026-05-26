@@ -24,9 +24,11 @@ opencode:
 
 # Delegation GitHub PR Mention
 
-Use this skill for an `agent_async_task` created from a `github_pr_mention` Portal Delegation. The task represents a configured GitHub user who was mentioned in a PR issue comment or PR review comment. Determine the requested action from the mention, inspect enough context, and return the final response for Portal to post as a PR comment.
+Use this skill for an `agent_async_task` created from a `github_pr_mention` Portal Delegation. The task represents a configured GitHub user who was mentioned in a PR issue comment or PR review comment. Determine the requested action from the mention, inspect enough context, and return the final response in `final_response` for Portal to deliver.
 
-All GitHub operations must use `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not post the final top-level PR comment yourself; Portal posts `final_response`.
+All GitHub context reads must use `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not post the final top-level PR comment yourself.
+
+Portal owns start feedback and final reply delivery. Portal reacts to the triggering comment and posts the final answer as a quote reply to that triggering comment from `final_response`; return `reply_handled_by_skill: false`. The skill must not add/remove reactions, post the final top-level PR comment, post the quote reply, or create/update Portal-owned status comments.
 
 ## Runtime Input
 
@@ -54,25 +56,11 @@ Use these sources in order:
 6. `metadata`
 7. GitHub API recovery from URL data
 
-Expected delegation fields may include `source`, `provider`, `source_url`, `source_comment`, `represented_identity`, `reply_target`, `reaction_target`, and `source_payload`. If the PR target cannot be resolved, return `status: "blocked"` with exact missing fields. If only the comment target is missing, continue without a reaction and record that limitation in `audit_trace`.
+Expected delegation fields may include `source`, `provider`, `source_url`, `source_comment`, `represented_identity`, `reply_target`, `reaction_target`, and `source_payload`. If the PR target cannot be resolved, return `status: "blocked"` with exact missing fields. If the triggering comment target is missing, continue when the request can still be answered and record that limitation in `audit_trace`.
 
-## Start Reaction
+## Portal-Owned Start Feedback
 
-At the very start, add an eyes reaction to the triggering comment when the comment id and type are known. Record the returned reaction id and cleanup target in `audit_trace`.
-
-For issue comments:
-
-```bash
-gh api -X POST /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions -f content=eyes -H "Accept: application/vnd.github+json"
-```
-
-For PR review comments:
-
-```bash
-gh api -X POST /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions -f content=eyes -H "Accept: application/vnd.github+json"
-```
-
-If comment id or type is missing, try to recover it from `source_url`, `reaction_target`, issue comments, and PR review comments. If recovery is impossible, continue without the reaction and record the missing target in `audit_trace`.
+Do not create start feedback or reactions. `input_payload.delegation.reaction_target` may be present for Portal-owned feedback, but the skill should only use it as context when recovering the triggering comment. Portal owns the triggering-comment reaction lifecycle.
 
 ## Fetch Context
 
@@ -115,18 +103,7 @@ Keep the response directly useful to the PR author or reviewer:
 - State uncertainty and missing data clearly.
 - Include next steps only when they are actionable.
 
-Do not approve, request changes, or submit a formal review state. Do not add a final top-level PR comment directly.
-
-## Cleanup Reaction
-
-Before returning success, blocked, or error output, remove the eyes reaction if one was created:
-
-```bash
-gh api -X DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}
-gh api -X DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}
-```
-
-If cleanup fails, include the failure in `audit_trace` and still return the main result.
+Do not approve, request changes, or submit a formal review state. Do not add a final top-level PR comment directly, and do not post the final quote reply directly.
 
 ## Output Contract
 
@@ -138,7 +115,7 @@ Required fields:
 {
   "status": "success | blocked | error",
   "summary": "Short operational summary.",
-  "final_response": "Exact PR comment body Portal should post.",
+  "final_response": "Exact quote reply body Portal should post.",
   "reply_handled_by_skill": false,
   "blockers": [],
   "next_recommendation": "Concrete next step.",

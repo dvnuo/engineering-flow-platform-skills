@@ -24,9 +24,11 @@ opencode:
 
 # Delegation GitHub PR Review
 
-Use this skill for an `agent_async_task` created from a `github_pr_review` Portal Delegation. The task represents a GitHub user who was directly requested as a pull request reviewer. Perform a concise, high-signal review, post line-specific findings as inline PR comments where practical, and return the final review body for Portal to post as a PR comment.
+Use this skill for an `agent_async_task` created from a `github_pr_review` Portal Delegation. The task represents a GitHub user who was directly requested as a pull request reviewer. Perform a concise, high-signal review, post line-specific findings as inline PR comments where practical, and return the final review body in `final_response` for Portal to post as a PR comment.
 
-All GitHub reads and writebacks must use the GitHub CLI: `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not approve the PR, request changes, submit a formal GitHub review state, or post the final top-level PR comment yourself. Portal posts `final_response`.
+All GitHub reads and inline review comment writebacks must use the GitHub CLI: `gh pr view`, `gh pr diff`, and `gh api`. Do not use platform GitHub wrapper tools. Do not approve the PR, request changes, submit a formal GitHub review state, or post the final top-level PR comment yourself.
+
+Portal owns start feedback and final reply delivery. Portal adds/removes the PR start reaction and posts the final PR comment from `final_response`; return `reply_handled_by_skill: false`. The skill must not add/remove Portal-owned reactions, post the final PR comment, or create/update Portal-owned status comments.
 
 ## Runtime Input
 
@@ -51,23 +53,9 @@ Resolution order:
 
 Expected delegation fields may include `source`, `provider`, `source_url`, `source_comment`, `represented_identity`, `reply_target`, `reaction_target`, and `source_payload`. If the target PR cannot be resolved after recovery, return `status: "blocked"` with a precise blocker in `blockers` and a `final_response` explaining what context is missing.
 
-## Start Reaction
+## Portal-Owned Start Feedback
 
-At the very start, add an eyes reaction and record the returned reaction id and cleanup endpoint in `audit_trace`.
-
-Prefer `input_payload.delegation.reaction_target`. If the event has no triggering comment, react to the PR issue itself:
-
-```bash
-gh api -X POST /repos/{owner}/{repo}/issues/{pull_number}/reactions -f content=eyes -H "Accept: application/vnd.github+json"
-```
-
-Supported reaction targets:
-
-- PR issue: `/repos/{owner}/{repo}/issues/{pull_number}/reactions`
-- issue comment: `/repos/{owner}/{repo}/issues/comments/{comment_id}/reactions`
-- PR review comment: `/repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions`
-
-If adding the reaction fails, continue the review and add the failure details to `audit_trace`. Never let a reaction failure hide the review result.
+Do not create start feedback or reactions. `input_payload.delegation.reaction_target` may be present for Portal-owned feedback, but the skill should only record relevant context and continue with the review. Portal owns the PR start reaction lifecycle.
 
 ## Fetch Context
 
@@ -92,10 +80,9 @@ Before reviewing, compare the observed head SHA from `input_payload.delegation.s
 If the PR head changed:
 
 1. Do not perform a stale review.
-2. Remove the eyes reaction if one was added.
-3. Return `status: "blocked"`.
-4. Set `final_response` to explain that the PR changed since the delegation event and should be re-queued for the current head SHA.
-5. Include both the observed SHA and current SHA in `audit_trace` when available.
+2. Return `status: "blocked"`.
+3. Set `final_response` to explain that the PR changed since the delegation event and should be re-queued for the current head SHA.
+4. Include both the observed SHA and current SHA in `audit_trace` when available.
 
 ## Review Method
 
@@ -162,19 +149,7 @@ Record every inline comment write in `external_actions` with at least:
 
 The final `final_response` should summarize review scope, list posted inline comments, and include only broad/non-line-anchorable findings or validation gaps. Avoid duplicating the full inline comment bodies unless needed for context.
 
-Do not add broad final comments, approval reviews, or request-changes reviews.
-
-## Cleanup Reaction
-
-Before returning success, blocked, or error output, remove the eyes reaction if one was created.
-
-```bash
-gh api -X DELETE /repos/{owner}/{repo}/issues/{pull_number}/reactions/{reaction_id}
-gh api -X DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}
-gh api -X DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}
-```
-
-Use the deletion endpoint that matches the reaction target. If cleanup fails, include the failure in `audit_trace` and still return the main task result.
+Do not add broad final comments, approval reviews, or request-changes reviews. Inline review comments are not the final reply; Portal delivers the final PR comment from `final_response`.
 
 ## Output Contract
 

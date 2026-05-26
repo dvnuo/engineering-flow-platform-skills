@@ -57,23 +57,62 @@ def test_delegation_skills_are_prompt_only_opencode_compatible() -> None:
         assert "tool_mappings" not in opencode
 
 
-def test_github_delegation_skills_use_gh_cli_and_reactions() -> None:
+def test_delegation_skills_defer_start_feedback_and_final_reply_to_portal() -> None:
+    required_fragments = [
+        "Portal owns start feedback and final reply delivery",
+        "`reply_handled_by_skill: false`",
+        '"reply_handled_by_skill": false',
+        "final_response",
+    ]
+
+    for name in DELEGATION_SKILLS:
+        _, content = _load_skill(name)
+        for fragment in required_fragments:
+            assert fragment in content
+        assert "reply_handled_by_skill: true" not in content
+        assert '"reply_handled_by_skill": true' not in content
+
+
+def test_github_delegation_skills_use_gh_cli_and_defer_reactions_to_portal() -> None:
     required_fragments = [
         "gh api",
         "gh pr view",
-        "eyes reaction",
+        "Portal owns start feedback and final reply delivery",
         "reaction_target",
         "input_payload.delegation",
         "final_response",
         "audit_trace",
         "external_actions",
     ]
+    forbidden_fragments = [
+        "At the very start, add an eyes reaction",
+        "add an eyes reaction to the triggering comment",
+        "remove the eyes reaction",
+        "gh api -X POST /repos/{owner}/{repo}/issues/{pull_number}/reactions",
+        "gh api -X POST /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+        "gh api -X POST /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
+        "gh api -X DELETE /repos/{owner}/{repo}/issues/{pull_number}/reactions",
+        "gh api -X DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+        "gh api -X DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
+    ]
 
     for name in GITHUB_SKILLS:
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
+        for fragment in forbidden_fragments:
+            assert fragment not in content
         assert "efp_github_" not in content
+
+
+def test_github_delegation_skills_document_portal_delivery_targets() -> None:
+    _, review_content = _load_skill("delegation-github-pr-review")
+    assert "Portal adds/removes the PR start reaction" in review_content
+    assert "posts the final PR comment from `final_response`" in review_content
+
+    _, mention_content = _load_skill("delegation-github-pr-mention")
+    assert "Portal reacts to the triggering comment" in mention_content
+    assert "quote reply to that triggering comment from `final_response`" in mention_content
 
 
 def test_github_pr_review_prefers_inline_comments_with_suggestions() -> None:
@@ -93,21 +132,28 @@ def test_github_pr_review_prefers_inline_comments_with_suggestions() -> None:
     assert "efp_github_" not in content
 
 
-def test_jira_delegation_skills_manage_comment_writeback() -> None:
+def test_jira_delegation_skills_defer_status_comments_to_portal() -> None:
     required_fragments = [
-        "jira issue comment add",
-        "jira issue comment update",
-        "reply_handled_by_skill: true",
+        "Portal creates the Jira start/status comment",
+        "updates that same comment with `final_response`",
+        "reply_handled_by_skill: false",
         "input_payload.delegation",
         "final_response",
+        "jira issue get",
         "audit_trace",
         "external_actions",
+    ]
+    forbidden_fragments = [
+        "jira issue comment add",
+        "jira issue comment update",
     ]
 
     for name in JIRA_SKILLS:
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
+        for fragment in forbidden_fragments:
+            assert fragment not in content
 
 
 def test_jira_delegation_skills_assume_preconfigured_private_runtime() -> None:
