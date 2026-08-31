@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 from scripts.validate_skills import parse_frontmatter
+
+from tests._skill_presence import require_skill
 
 
 def _load_skill() -> tuple[dict[str, object], str]:
-    path = Path(__file__).resolve().parents[1] / "create-pull-request" / "skill.md"
+    path = require_skill("create-pull-request")
     content = path.read_text(encoding="utf-8")
     data, errors = parse_frontmatter(content)
     assert errors == []

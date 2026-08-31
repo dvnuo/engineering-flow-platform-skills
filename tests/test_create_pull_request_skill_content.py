@@ -4,10 +4,11 @@ from pathlib import Path
 
 from scripts.validate_skills import parse_frontmatter
 
+from tests._skill_presence import require_skill
+
 
 def test_create_pull_request_frontmatter_and_required_content() -> None:
-    repo_root = Path(__file__).resolve().parents[1]
-    skill_path = repo_root / "create-pull-request" / "skill.md"
+    skill_path = require_skill("create-pull-request")
     content = skill_path.read_text(encoding="utf-8")
 
     data, errors = parse_frontmatter(content)

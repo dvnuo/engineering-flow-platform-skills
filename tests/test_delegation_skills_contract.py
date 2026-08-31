@@ -6,24 +6,41 @@ from pathlib import Path
 from scripts.validate_skills import parse_frontmatter
 
 
+from tests._skill_presence import require_skill, require_skills
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DELEGATION_SKILLS = [
+_ALL_DELEGATION_SKILLS = [
     "delegation-github-pr-review",
     "delegation-github-pr-mention",
     "delegation-jira-assignee",
     "delegation-jira-mention",
 ]
-GITHUB_SKILLS = [
+_ALL_GITHUB_SKILLS = [
     "delegation-github-pr-review",
     "delegation-github-pr-mention",
 ]
-JIRA_SKILLS = [
+_ALL_JIRA_SKILLS = [
     "delegation-jira-assignee",
     "delegation-jira-mention",
 ]
+
+
+def DELEGATION_SKILLS() -> list[str]:
+    return require_skills(_ALL_DELEGATION_SKILLS)
+
+
+def GITHUB_SKILLS() -> list[str]:
+    return require_skills(_ALL_GITHUB_SKILLS)
+
+
+def JIRA_SKILLS() -> list[str]:
+    return require_skills(_ALL_JIRA_SKILLS)
 
 
 def _load_skill(name: str) -> tuple[dict[str, object], str]:
+    # Named subjects need the same guard as the looped ones: a role branch that
+    # omits this skill should skip, not fail on a missing file.
+    require_skill(name)
     path = REPO_ROOT / name / "skill.md"
     content = path.read_text(encoding="utf-8")
     data, errors = parse_frontmatter(content)
@@ -32,19 +49,19 @@ def _load_skill(name: str) -> tuple[dict[str, object], str]:
 
 
 def test_delegation_skill_files_exist() -> None:
-    for name in DELEGATION_SKILLS:
+    for name in DELEGATION_SKILLS():
         assert (REPO_ROOT / name).is_dir()
         assert (REPO_ROOT / name / "skill.md").is_file()
 
 
 def test_delegation_frontmatter_names_match_directories() -> None:
-    for name in DELEGATION_SKILLS:
+    for name in DELEGATION_SKILLS():
         data, _ = _load_skill(name)
         assert data["name"] == name
 
 
 def test_delegation_skills_are_prompt_only_opencode_compatible() -> None:
-    for name in DELEGATION_SKILLS:
+    for name in DELEGATION_SKILLS():
         data, _ = _load_skill(name)
 
         assert "tools" not in data
@@ -65,7 +82,7 @@ def test_delegation_skills_defer_start_feedback_and_final_reply_to_portal() -> N
         "final_response",
     ]
 
-    for name in DELEGATION_SKILLS:
+    for name in DELEGATION_SKILLS():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -96,7 +113,7 @@ def test_github_delegation_skills_use_gh_cli_and_defer_reactions_to_portal() -> 
         "gh api -X DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
     ]
 
-    for name in GITHUB_SKILLS:
+    for name in GITHUB_SKILLS():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -148,7 +165,7 @@ def test_jira_delegation_skills_defer_status_comments_to_portal() -> None:
         "jira issue comment update",
     ]
 
-    for name in JIRA_SKILLS:
+    for name in JIRA_SKILLS():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -176,7 +193,7 @@ def test_jira_delegation_skills_assume_preconfigured_private_runtime() -> None:
         r"\bauthorization\b",
     ]
 
-    for name in JIRA_SKILLS:
+    for name in JIRA_SKILLS():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
