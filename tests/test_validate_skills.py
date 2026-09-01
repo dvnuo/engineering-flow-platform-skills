@@ -563,30 +563,93 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
 
     assert exit_code == 0, "\n".join(errors)
     assert errors == []
-    assert stats["total_skill_directories"] == 16
-    assert stats["total_skill_md_discovered"] == 16
-    assert stats["python_backed_skills_count"] == 5
+
+    # Skills are distributed on per-role branches, each shipping a subset, so
+    # the absolute count is a property of the branch rather than of the
+    # contract. Assert what must hold everywhere: every skill directory carries
+    # a skill.md, and every discovered skill gets OpenCode metadata.
+    on_disk = sum(
+        1
+        for entry in repo_root.iterdir()
+        if entry.is_dir() and (entry / "skill.md").is_file()
+    )
+    assert on_disk > 0, "a branch with no skills is not a valid skill pack"
+    assert stats["total_skill_directories"] == on_disk
+    assert stats["total_skill_md_discovered"] == on_disk
+    assert stats["opencode_normalized_skill_names"] == on_disk
+    assert stats["opencode_metadata_count"] == on_disk
     assert stats["opencode_compatible_enabled"] == 1
-    assert stats["opencode_normalized_skill_names"] == 16
-    assert stats["opencode_metadata_count"] == 16
-    assert stats["opencode_permission_default_allow_count"] == 0
-    assert stats["opencode_permission_default_ask_count"] == 11
-    assert stats["opencode_permission_default_deny_count"] == 5
-    assert stats["opencode_execution_kind_prompt_only_count"] == 11
-    assert stats["opencode_execution_kind_programmatic_count"] == 5
-    assert stats["opencode_execution_kind_hybrid_count"] == 0
-    assert stats["opencode_compatibility_full_count"] == 8
-    assert stats["opencode_compatibility_degraded_count"] == 3
-    assert stats["opencode_compatibility_unsupported_count"] == 5
-    assert stats["opencode_tool_required_skill_count"] == 3
-    assert stats["opencode_tool_mapped_skill_count"] == 3
+
+    # Every remaining counter is derived from the skills actually present, the
+    # same way opencode_tool_mapping_count already was. That still exercises the
+    # validator's counting -- it just no longer encodes how many skills happen
+    # to be on this branch.
+    expected_permission: dict[str, int] = {}
+    expected_execution_kind: dict[str, int] = {}
+    expected_compatibility: dict[str, int] = {}
     expected_mapping_count = 0
-    for skill_md in repo_root.rglob("skill.md"):
+    expected_tool_required = 0
+    expected_tool_mapped = 0
+    expected_python_backed = 0
+    # Top-level only, matching what validate_root counts. rglob would also pull
+    # in integration/fixtures, which is validated separately with its own root.
+    for entry in sorted(repo_root.iterdir()):
+        skill_md = entry / "skill.md"
+        if not (entry.is_dir() and skill_md.is_file()):
+            continue
         data, fm_errors = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
         assert fm_errors == []
         opencode = data.get("opencode") if isinstance(data.get("opencode"), dict) else {}
+
+        permission = opencode.get("permission") if isinstance(opencode.get("permission"), dict) else {}
+        default = str(permission.get("default") or "")
+        if default:
+            expected_permission[default] = expected_permission.get(default, 0) + 1
+
+        execution_kind = str(opencode.get("execution_kind") or "")
+        if execution_kind:
+            expected_execution_kind[execution_kind] = expected_execution_kind.get(execution_kind, 0) + 1
+
+        compatibility = str(opencode.get("compatibility") or "")
+        if compatibility:
+            expected_compatibility[compatibility] = expected_compatibility.get(compatibility, 0) + 1
+
+        if (skill_md.parent / "skill.py").exists():
+            expected_python_backed += 1
+
+        # Mirror _collect_legacy_tool_names: tools and task_tools together,
+        # deduplicated. Counting only `tools` happened to agree with today's
+        # data and would break on the first task_tools-only skill.
+        required_tools: list[str] = []
+        for field_name in ("tools", "task_tools"):
+            values = data.get(field_name)
+            if not isinstance(values, list):
+                continue
+            for item in values:
+                if isinstance(item, str) and item.strip() and item.strip() not in required_tools:
+                    required_tools.append(item.strip())
+        if required_tools:
+            expected_tool_required += 1
+
         mappings = opencode.get("tool_mappings") if isinstance(opencode.get("tool_mappings"), dict) else {}
+        # "Mapped" means the mapping covers every required tool, not merely that
+        # some mapping exists.
+        if required_tools and len(mappings) == len(required_tools):
+            expected_tool_mapped += 1
         expected_mapping_count += len(mappings)
+
+    assert stats["opencode_permission_default_allow_count"] == expected_permission.get("allow", 0)
+    assert stats["opencode_permission_default_ask_count"] == expected_permission.get("ask", 0)
+    assert stats["opencode_permission_default_deny_count"] == expected_permission.get("deny", 0)
+    assert stats["opencode_execution_kind_prompt_only_count"] == expected_execution_kind.get("prompt_only", 0)
+    assert stats["opencode_execution_kind_programmatic_count"] == expected_execution_kind.get("programmatic", 0)
+    assert stats["opencode_execution_kind_hybrid_count"] == expected_execution_kind.get("hybrid", 0)
+    assert stats["opencode_compatibility_full_count"] == expected_compatibility.get("full", 0)
+    assert stats["opencode_compatibility_degraded_count"] == expected_compatibility.get("degraded", 0)
+    assert stats["opencode_compatibility_unsupported_count"] == expected_compatibility.get("unsupported", 0)
+    assert stats["python_backed_skills_count"] == expected_python_backed
+    assert stats["opencode_tool_required_skill_count"] == expected_tool_required
+    assert stats["opencode_tool_mapped_skill_count"] == expected_tool_mapped
     assert stats["opencode_tool_mapping_count"] == expected_mapping_count
 
 

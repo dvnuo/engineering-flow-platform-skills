@@ -5,6 +5,8 @@ from pathlib import Path
 
 from scripts.validate_skills import parse_frontmatter
 
+from tests._skill_presence import require_skill
+
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_DIR = REPO_ROOT / "jira_bulk_create_from_csv"
@@ -12,13 +14,14 @@ SKILL_PATH = SKILL_DIR / "skill.md"
 
 
 def _load_skill() -> tuple[dict[str, object], str]:
-    content = SKILL_PATH.read_text(encoding="utf-8")
+    content = require_skill("jira_bulk_create_from_csv").read_text(encoding="utf-8")
     data, errors = parse_frontmatter(content)
     assert errors == []
     return data, content
 
 
 def test_jira_bulk_create_from_csv_skill_files_exist() -> None:
+    require_skill("jira_bulk_create_from_csv")
     assert SKILL_DIR.is_dir()
     assert SKILL_PATH.is_file()
 
