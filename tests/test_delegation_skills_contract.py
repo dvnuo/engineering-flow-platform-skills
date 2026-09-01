@@ -25,15 +25,15 @@ _ALL_JIRA_SKILLS = [
 ]
 
 
-def DELEGATION_SKILLS() -> list[str]:
+def delegation_skills() -> list[str]:
     return require_skills(_ALL_DELEGATION_SKILLS)
 
 
-def GITHUB_SKILLS() -> list[str]:
+def github_skills() -> list[str]:
     return require_skills(_ALL_GITHUB_SKILLS)
 
 
-def JIRA_SKILLS() -> list[str]:
+def jira_skills() -> list[str]:
     return require_skills(_ALL_JIRA_SKILLS)
 
 
@@ -49,19 +49,19 @@ def _load_skill(name: str) -> tuple[dict[str, object], str]:
 
 
 def test_delegation_skill_files_exist() -> None:
-    for name in DELEGATION_SKILLS():
+    for name in delegation_skills():
         assert (REPO_ROOT / name).is_dir()
         assert (REPO_ROOT / name / "skill.md").is_file()
 
 
 def test_delegation_frontmatter_names_match_directories() -> None:
-    for name in DELEGATION_SKILLS():
+    for name in delegation_skills():
         data, _ = _load_skill(name)
         assert data["name"] == name
 
 
 def test_delegation_skills_are_prompt_only_opencode_compatible() -> None:
-    for name in DELEGATION_SKILLS():
+    for name in delegation_skills():
         data, _ = _load_skill(name)
 
         assert "tools" not in data
@@ -82,7 +82,7 @@ def test_delegation_skills_defer_start_feedback_and_final_reply_to_portal() -> N
         "final_response",
     ]
 
-    for name in DELEGATION_SKILLS():
+    for name in delegation_skills():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -113,7 +113,7 @@ def test_github_delegation_skills_use_gh_cli_and_defer_reactions_to_portal() -> 
         "gh api -X DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
     ]
 
-    for name in GITHUB_SKILLS():
+    for name in github_skills():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -165,7 +165,7 @@ def test_jira_delegation_skills_defer_status_comments_to_portal() -> None:
         "jira issue comment update",
     ]
 
-    for name in JIRA_SKILLS():
+    for name in jira_skills():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content
@@ -193,7 +193,7 @@ def test_jira_delegation_skills_assume_preconfigured_private_runtime() -> None:
         r"\bauthorization\b",
     ]
 
-    for name in JIRA_SKILLS():
+    for name in jira_skills():
         _, content = _load_skill(name)
         for fragment in required_fragments:
             assert fragment in content

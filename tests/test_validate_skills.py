@@ -590,6 +590,7 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
     expected_mapping_count = 0
     expected_tool_required = 0
     expected_tool_mapped = 0
+    expected_python_backed = 0
     # Top-level only, matching what validate_root counts. rglob would also pull
     # in integration/fixtures, which is validated separately with its own root.
     for entry in sorted(repo_root.iterdir()):
@@ -613,12 +614,27 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
         if compatibility:
             expected_compatibility[compatibility] = expected_compatibility.get(compatibility, 0) + 1
 
-        tools = data.get("tools") if isinstance(data.get("tools"), list) else []
-        if tools:
+        if (skill_md.parent / "skill.py").exists():
+            expected_python_backed += 1
+
+        # Mirror _collect_legacy_tool_names: tools and task_tools together,
+        # deduplicated. Counting only `tools` happened to agree with today's
+        # data and would break on the first task_tools-only skill.
+        required_tools: list[str] = []
+        for field_name in ("tools", "task_tools"):
+            values = data.get(field_name)
+            if not isinstance(values, list):
+                continue
+            for item in values:
+                if isinstance(item, str) and item.strip() and item.strip() not in required_tools:
+                    required_tools.append(item.strip())
+        if required_tools:
             expected_tool_required += 1
 
         mappings = opencode.get("tool_mappings") if isinstance(opencode.get("tool_mappings"), dict) else {}
-        if mappings:
+        # "Mapped" means the mapping covers every required tool, not merely that
+        # some mapping exists.
+        if required_tools and len(mappings) == len(required_tools):
             expected_tool_mapped += 1
         expected_mapping_count += len(mappings)
 
@@ -631,6 +647,7 @@ def test_current_repository_passes_t13_opencode_validation() -> None:
     assert stats["opencode_compatibility_full_count"] == expected_compatibility.get("full", 0)
     assert stats["opencode_compatibility_degraded_count"] == expected_compatibility.get("degraded", 0)
     assert stats["opencode_compatibility_unsupported_count"] == expected_compatibility.get("unsupported", 0)
+    assert stats["python_backed_skills_count"] == expected_python_backed
     assert stats["opencode_tool_required_skill_count"] == expected_tool_required
     assert stats["opencode_tool_mapped_skill_count"] == expected_tool_mapped
     assert stats["opencode_tool_mapping_count"] == expected_mapping_count
