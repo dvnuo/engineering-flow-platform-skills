@@ -1,0 +1,111 @@
+{
+  "title": "Q3 Platform Review",
+  "subtitle": "Engineering Flow Platform · quarterly readout",
+  "author": "Platform team",
+  "date": "2026-09-14",
+  "footer": "EFP · internal",
+  "theme": {
+    "primary": "1F3A5F",
+    "accent": "E07A1F",
+    "font": "Calibri"
+  },
+  "slides": [
+    {
+      "type": "bullets",
+      "title": "Agenda",
+      "bullets": [
+        "Where we are: adoption and reliability",
+        "What shipped in Q3",
+        "Cost and usage trends",
+        "Risks and asks for Q4"
+      ],
+      "notes": "Keep this under a minute; the numbers come on the next slides."
+    },
+    {
+      "type": "section",
+      "title": "Where we are",
+      "subtitle": "Adoption and reliability"
+    },
+    {
+      "type": "kpi",
+      "title": "Adoption at a glance",
+      "metrics": [
+        { "value": "412", "label": "weekly active members", "description": "+38% vs Q2" },
+        { "value": "97.8%", "label": "chat success rate" },
+        { "value": "3.1s", "label": "median first token" },
+        { "value": "26", "label": "assistants in production" }
+      ]
+    },
+    {
+      "type": "chart",
+      "title": "Weekly active members kept climbing",
+      "chart": {
+        "kind": "line",
+        "title": "Weekly active members",
+        "categories": ["W27", "W28", "W29", "W30", "W31", "W32", "W33", "W34", "W35", "W36", "W37", "W38"],
+        "series": [
+          { "name": "Members", "values": [298, 305, 321, 330, 342, 351, 360, 372, 388, 395, 404, 412] }
+        ]
+      }
+    },
+    {
+      "type": "two_column",
+      "title": "What shipped in Q3",
+      "left": {
+        "heading": "Portal",
+        "bullets": [
+          "SSO login and member allowlist",
+          "Runtime profiles per assistant",
+          "Server Files panel with downloads"
+        ]
+      },
+      "right": {
+        "heading": "Runtime",
+        "bullets": [
+          "AI Platform provider alongside Copilot",
+          "Multi-instance Jenkins CLI",
+          "Deliverable detection for generated files"
+        ]
+      }
+    },
+    {
+      "type": "table",
+      "title": "Cost per provider",
+      "headers": ["Provider", "Requests", "Cost (USD)", "Cost / request"],
+      "rows": [
+        ["GitHub Copilot", "184,200", "$9,120", "$0.050"],
+        ["AI Platform", "62,400", "$4,368", "$0.070"],
+        ["Total", "246,600", "$13,488", "$0.055"]
+      ]
+    },
+    {
+      "type": "chart",
+      "title": "Copilot still carries three quarters of traffic",
+      "chart": {
+        "kind": "pie",
+        "categories": ["GitHub Copilot", "AI Platform"],
+        "series": [{ "name": "Requests", "values": [184200, 62400] }]
+      }
+    },
+    {
+      "type": "quote",
+      "quote": "The assistant wrote the runbook and the Jira tickets in one sitting; the review took longer than the work.",
+      "attribution": "Tech lead, payments squad"
+    },
+    {
+      "type": "bullets",
+      "title": "Risks and asks for Q4",
+      "bullets": [
+        "Context window split between native and legacy paths needs one owner",
+        { "text": "Decide whether gpt-5.6-luna is really a 328k model", "level": 1 },
+        "Runtime image growth: keep office libraries but drop the Go toolchain",
+        "Ask: one FTE for skills curation through Q4"
+      ]
+    },
+    {
+      "type": "closing",
+      "title": "Thank you",
+      "subtitle": "Questions → #efp-platform"
+    }
+  ]
+}
