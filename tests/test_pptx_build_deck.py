@@ -20,6 +20,22 @@ SCRIPT = REPO_ROOT / "pptx" / "scripts" / "build_deck.py"
 EXAMPLE = REPO_ROOT / "pptx" / "references" / "spec-example.json"
 
 
+def _python_pptx_installed() -> bool:
+    """True only for the real library.
+
+    With the repo root on sys.path the skill directory ``pptx/`` is importable
+    as an empty namespace package, so ``find_spec("pptx")`` is not enough.
+    """
+    try:
+        module = importlib.import_module("pptx")
+    except ImportError:
+        return False
+    return hasattr(module, "Presentation")
+
+
+needs_python_pptx = pytest.mark.skipif(not _python_pptx_installed(), reason="python-pptx is not installed")
+
+
 def _load_module():
     require_skill("pptx")
     spec = importlib.util.spec_from_file_location("pptx_build_deck", SCRIPT)
@@ -136,7 +152,7 @@ def test_cli_print_example_matches_reference(capsys: pytest.CaptureFixture[str])
     assert json.loads(capsys.readouterr().out) == _example()
 
 
-@pytest.mark.skipif(importlib.util.find_spec("pptx") is None, reason="python-pptx is not installed")
+@needs_python_pptx
 def test_build_example_deck_renders_every_slide(tmp_path: Path) -> None:
     module = _load_module()
     output = tmp_path / "out" / "deck.pptx"
@@ -162,7 +178,7 @@ def test_build_example_deck_renders_every_slide(tmp_path: Path) -> None:
     assert presentation.core_properties.title == "Q3 Platform Review"
 
 
-@pytest.mark.skipif(importlib.util.find_spec("pptx") is None, reason="python-pptx is not installed")
+@needs_python_pptx
 def test_build_keeps_every_shape_inside_the_slide(tmp_path: Path) -> None:
     """Layout maths is relative to the slide size; nothing may hang off the edge."""
     module = _load_module()

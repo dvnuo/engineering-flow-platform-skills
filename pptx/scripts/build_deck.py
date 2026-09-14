@@ -908,7 +908,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        import pptx  # noqa: F401
+        # Import the class, not the package: a stray ``pptx/`` directory on
+        # sys.path imports as an empty namespace package and would pass a
+        # plain ``import pptx``.
+        from pptx import Presentation  # noqa: F401
     except ImportError:
         _emit(
             {
