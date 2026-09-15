@@ -29,6 +29,7 @@ Use this skill to create a structured implementation plan for execution teams fr
 
 - Writes the configured implementation plan YAML artifact in the bundle.
 - Returns updated file information and commit SHA.
+- May add a top-level `diagrams` list (title, caption, Mermaid source) where a workstream flow or sequence is clearer drawn than listed; Portal, GitHub and Confluence Gliffy render the Mermaid.
 
 ## Runtime dependencies
 

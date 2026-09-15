@@ -29,6 +29,7 @@ Use this skill to transform requirement bundle context into actionable test case
 
 - Generates and writes the configured test-cases YAML artifact.
 - Returns updated file metadata and commit SHA.
+- May add a top-level `diagrams` list (title, caption, Mermaid source) where the flow under test or a lifecycle is clearer drawn than listed; Portal, GitHub and Confluence Gliffy render the Mermaid.
 
 ## Runtime dependencies
 

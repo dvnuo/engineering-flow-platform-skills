@@ -16,6 +16,8 @@ from src.runtime.requirement_bundle_assets import (
     write_test_cases_doc_for_ref,
 )
 
+from skills.shared_diagram_fields import DIAGRAMS_PROMPT, normalize_diagrams
+
 JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", re.DOTALL | re.IGNORECASE)
 
 
@@ -63,7 +65,8 @@ async def design_test_cases_from_bundle(
             system_prompt=(
                 "You are a test designer. Return STRICT JSON only with top-level key test_cases as an array. "
                 "Every test case must include: case_id, title, category, priority, preconditions, steps, "
-                "expected_results, traceability."
+                "expected_results, traceability. "
+                + DIAGRAMS_PROMPT
             ),
             messages=[{"role": "user", "content": json.dumps(design_context, ensure_ascii=False)}],
             temperature=0.1,
@@ -75,6 +78,10 @@ async def design_test_cases_from_bundle(
             "generated_from_requirements_commit": "",
             "test_cases": structured.get("test_cases", []),
         }
+
+        diagrams = normalize_diagrams(structured.get("diagrams"))
+        if diagrams:
+            payload["diagrams"] = diagrams
         write_result = await write_test_cases_doc_for_ref(target_ref, payload, test_cases_file=test_cases_file)
         commit_sha = ((write_result.get("commit") or {}).get("sha")) if isinstance(write_result, dict) else None
 
