@@ -24,6 +24,8 @@ when_to_use:
 references:
   - references/layout-guide.md
   - references/spec-example.json
+  - scripts/inspect_template.py
+  - scripts/slice_icons.py
 planning_mode: auto
 execution_style: direct
 ask_user_policy: blocked_only
@@ -95,8 +97,33 @@ python /app/skills/pptx/scripts/build_deck.py --print-example
 
 Rules of thumb: title slide is generated from `title`/`subtitle`; use `section`
 dividers for decks over ten slides; put numbers in `kpi`, `chart` or `table`
-slides, not in bullets; keep at most 6 bullets and 2 levels per slide; put the
-narration in `notes`.
+slides, not in bullets; use `cards` for three or four parallel points; keep at
+most 6 bullets and 2 levels per slide; put the narration in `notes`.
+
+### 3a. Brand styles, templates and icons
+
+When a brand skill is available (for example `/pptx-brand`), load it and put
+its style in the spec (`"style"` plus `"styles_file"`), or pass `--styles` and
+`--style` on the command line. The style brings colours, fonts, the template,
+footer, logo and background pictures; the spec only carries content. List the
+styles with:
+
+```bash
+python /app/skills/pptx/scripts/build_deck.py --list-styles --styles <styles.json>
+```
+
+When the member supplies a corporate template or an icon sheet instead, read
+them before writing the spec:
+
+```bash
+python /app/skills/pptx/scripts/inspect_template.py <template.pptx>
+python /app/skills/pptx/scripts/slice_icons.py <sheet.png> --out .efp/pptx/icons --names <name1,name2,...>
+```
+
+The inspection reports the theme colours and fonts as a ready `theme` block,
+the layouts, and the template's sample slides (its text examples). The slicer
+writes one PNG per icon plus a numbered contact sheet; name the icons from that
+sheet, then reference them by path in `kpi` metrics or `cards` items.
 
 ### 4. Validate, build, verify
 

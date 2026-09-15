@@ -69,6 +69,15 @@
       }
     },
     {
+      "type": "cards",
+      "title": "Three things that made the quarter",
+      "items": [
+        { "title": "Deliverables in chat", "text": "Files an assistant writes under output/ show up as download cards." },
+        { "title": "One catalog", "text": "Portal and runtime share the same model list, checked in CI." },
+        { "title": "Skills per role", "text": "Each assistant boots from the skills branch its role needs." }
+      ]
+    },
+    {
       "type": "table",
       "title": "Cost per provider",
       "headers": ["Provider", "Requests", "Cost (USD)", "Cost / request"],

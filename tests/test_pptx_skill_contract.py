@@ -42,7 +42,12 @@ def test_pptx_frontmatter_contract() -> None:
     # The skill is meant to be reachable from Chinese requests as well.
     assert any("PPT" in str(trigger) for trigger in triggers)
 
-    assert data["references"] == ["references/layout-guide.md", "references/spec-example.json"]
+    assert data["references"] == [
+        "references/layout-guide.md",
+        "references/spec-example.json",
+        "scripts/inspect_template.py",
+        "scripts/slice_icons.py",
+    ]
 
     opencode = data.get("opencode")
     assert isinstance(opencode, dict)
@@ -82,9 +87,21 @@ def test_pptx_body_contains_required_contract_clauses() -> None:
         "Server Files",
         "east_asian_font",
         "Never invent",
+        "--list-styles",
+        "inspect_template.py",
+        "slice_icons.py",
+        "/pptx-brand",
     ]
     for fragment in required_fragments:
         assert fragment in content, fragment
+
+
+def test_pptx_engine_ships_the_companion_scripts() -> None:
+    require_skill("pptx")
+    for script in ("build_deck.py", "inspect_template.py", "slice_icons.py"):
+        path = SKILL_DIR / "scripts" / script
+        assert path.is_file(), script
+        assert path.read_text(encoding="utf-8").startswith("#!/usr/bin/env python3"), script
 
 
 def test_pptx_skill_passes_repo_validator() -> None:
