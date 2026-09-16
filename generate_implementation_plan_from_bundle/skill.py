@@ -15,6 +15,7 @@ from src.runtime.requirement_bundle_assets import (
 )
 
 from skills.collect_requirements_to_bundle.skill import _extract_json_dict
+from skills.shared_diagram_fields import DIAGRAMS_PROMPT, normalize_diagrams
 
 
 @skill(
@@ -56,7 +57,8 @@ async def generate_implementation_plan_from_bundle(
         llm_response = await llm.chat(
             system_prompt=(
                 "You are an implementation planner. Return STRICT JSON only with top-level keys: "
-                "summary, workstreams, tasks, risks, validation_checks."
+                "summary, workstreams, tasks, risks, validation_checks. "
+                + DIAGRAMS_PROMPT
             ),
             messages=[{"role": "user", "content": json.dumps(prompt_context, ensure_ascii=False)}],
             temperature=0.1,
@@ -72,6 +74,10 @@ async def generate_implementation_plan_from_bundle(
             "risks": structured.get("risks", []),
             "validation_checks": structured.get("validation_checks", []),
         }
+
+        diagrams = normalize_diagrams(structured.get("diagrams"))
+        if diagrams:
+            payload["diagrams"] = diagrams
 
         write_result = await write_bundle_yaml(
             target_ref,

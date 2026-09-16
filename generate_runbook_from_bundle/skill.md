@@ -29,6 +29,7 @@ Use this skill to generate operational guidance from requirement bundle context.
 
 - Writes the configured runbook YAML artifact.
 - Returns updated file metadata and commit SHA.
+- May add a top-level `diagrams` list (title, caption, Mermaid source) where the rollout or rollback flow is clearer drawn than listed; Portal, GitHub and Confluence Gliffy render the Mermaid.
 
 ## Runtime dependencies
 
