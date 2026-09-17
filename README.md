@@ -2,6 +2,27 @@
 
 This repository is the standalone skills source for Engineering Flow Platform (EFP).
 
+## PM / BA skills
+
+面向 Product Manager（PM）和 Business Analyst（BA），以下技能可独立使用，按任务选取即可。输入可以是用户提供的访谈、需求、业务规则或现有 bundle 内容；输出为可审阅的 Markdown 草稿。
+
+| 场景 | Skill | 主要产物 |
+| --- | --- | --- |
+| 验证用户问题和机会 | [product-discovery](product-discovery/skill.md) | 证据、机会、假设和实验计划 |
+| 比较需求并安排路线图 | [prioritize-roadmap](prioritize-roadmap/skill.md) | 可复核的优先级与结果导向路线图 |
+| 明确成功标准 | [define-product-metrics](define-product-metrics/skill.md) | 指标字典、护栏指标和埋点计划 |
+| 编写或补齐 PRD | [write-product-requirements](write-product-requirements/skill.md) | 范围、需求、验收与来源追溯 |
+| 拆分交付工作 | [break-down-user-stories](break-down-user-stories/skill.md) | Epic、故事、验收条件和覆盖矩阵 |
+| 判断需求是否可交接 | [review-requirements-readiness](review-requirements-readiness/skill.md) | 就绪结论、缺口和修复清单 |
+| 梳理业务流程与规则 | [analyze-business-process](analyze-business-process/skill.md) | 现状/目标流程、规则表和异常路径 |
+| 评估需求变更 | [analyze-requirement-change](analyze-requirement-change/skill.md) | 基线差异、影响链、备选方案和待决事项 |
+
+例如：`/write-product-requirements 根据这些访谈和流程规则写一份 PRD，区分事实与假设，列出待确认的验收条件。`
+
+这些技能采用 `prompt_only` / `full` / `ask` 元数据，不要求安装上游插件或运行 Python。`full` 表示提示词与随附资源可由 OpenCode 适配器消费，不代表已在部署环境完成业务验收。它们补充现有 `collect_requirements_to_bundle`、`collect_research_notes_to_bundle` 的分析能力；写入 bundle 或创建 Jira issue 仍使用对应集成及其已有授权流程。
+
+选择依据、上游版本、许可证和验证场景见 [PM/BA 技能吸收评估](docs/pm-ba-skills-adoption.md)。`master` 保存完整技能库；`business` 提供 Business Assistant 的角色技能集，新增内容应同步到两个分支。
+
 ## Runtime mount model
 
 Portal checks out this repository into each agent runtime container at:
