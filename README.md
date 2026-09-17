@@ -247,6 +247,14 @@ the root helper modules) stays on every branch.
 
 Skills on `business`:
 
+- `product-discovery`
+- `prioritize-roadmap`
+- `define-product-metrics`
+- `write-product-requirements`
+- `break-down-user-stories`
+- `review-requirements-readiness`
+- `analyze-business-process`
+- `analyze-requirement-change`
 - `collect_requirements_to_bundle`
 - `collect_research_notes_to_bundle`
 - `design_test_cases_from_bundle`
