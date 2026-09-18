@@ -4,24 +4,26 @@ This repository is the standalone skills source for Engineering Flow Platform (E
 
 ## PM / BA skills
 
-面向 Product Manager（PM）和 Business Analyst（BA），以下技能可独立使用，按任务选取即可。输入可以是用户提供的访谈、需求、业务规则或现有 bundle 内容；输出为可审阅的 Markdown 草稿。
+Skills for Product Managers (PM) and Business Analysts (BA). Each one is prompt-only, works from what the member supplies (attached files, pasted text, or Jira, Confluence and GitHub sources fetched with the runtime CLIs) and delivers a reviewable Markdown document under `output/` with a download link. Skill text is English; the document and the reply follow the member's language.
 
-| 场景 | Skill | 主要产物 |
+| Task | Skill | Deliverable |
 | --- | --- | --- |
-| 验证用户问题和机会 | [product-discovery](product-discovery/skill.md) | 证据、机会、假设和实验计划 |
-| 比较需求并安排路线图 | [prioritize-roadmap](prioritize-roadmap/skill.md) | 可复核的优先级与结果导向路线图 |
-| 明确成功标准 | [define-product-metrics](define-product-metrics/skill.md) | 指标字典、护栏指标和埋点计划 |
-| 编写或补齐 PRD | [write-product-requirements](write-product-requirements/skill.md) | 范围、需求、验收与来源追溯 |
-| 拆分交付工作 | [break-down-user-stories](break-down-user-stories/skill.md) | Epic、故事、验收条件和覆盖矩阵 |
-| 判断需求是否可交接 | [review-requirements-readiness](review-requirements-readiness/skill.md) | 就绪结论、缺口和修复清单 |
-| 梳理业务流程与规则 | [analyze-business-process](analyze-business-process/skill.md) | 现状/目标流程、规则表和异常路径 |
-| 评估需求变更 | [analyze-requirement-change](analyze-requirement-change/skill.md) | 基线差异、影响链、备选方案和待决事项 |
+| Validate a user problem or opportunity | [product-discovery](product-discovery/skill.md) | `output/discovery-<slug>.md`: evidence log, opportunities, assumptions, test cards |
+| Rank candidates and sequence a roadmap | [prioritize-roadmap](prioritize-roadmap/skill.md) | `output/roadmap-<slug>.md`: reviewable ranking, trade-offs, outcome roadmap |
+| Define success metrics | [define-product-metrics](define-product-metrics/skill.md) | `output/metrics-<slug>.md`: metric dictionary, guardrails, instrumentation map |
+| Write or complete a PRD | [write-product-requirements](write-product-requirements/skill.md) | `output/prd-<slug>.md`: scope, requirements, acceptance criteria, sources |
+| Split delivery work | [break-down-user-stories](break-down-user-stories/skill.md) | `output/stories-<slug>.md` and `.csv`: epics, stories, acceptance criteria, coverage matrix |
+| Judge whether requirements can be handed over | [review-requirements-readiness](review-requirements-readiness/skill.md) | `output/readiness-<slug>.md`: verdict, findings, closing conditions |
+| Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md`: as-is and to-be process, decision tables, exceptions |
+| Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md`: diff, trace matrix, options, update list |
 
-例如：`/write-product-requirements 根据这些访谈和流程规则写一份 PRD，区分事实与假设，列出待确认的验收条件。`
+Example: `/write-product-requirements Draft a PRD for invoice approval from the attached interview notes; separate facts from assumptions and list the acceptance criteria still to confirm.`
 
-这些技能采用 `prompt_only` / `full` / `ask` 元数据，不要求安装上游插件或运行 Python。`full` 表示提示词与随附资源可由 OpenCode 适配器消费，不代表已在部署环境完成业务验收。它们补充现有 `collect_requirements_to_bundle`、`collect_research_notes_to_bundle` 的分析能力；写入 bundle 或创建 Jira issue 仍使用对应集成及其已有授权流程。
+In the native agent only `name` and `description` drive activation (a `/<skill-name>` line, the agent profile, or the model choosing the skill by description); the `triggers` list is documentation for the validator and Portal. The skills use `prompt_only` / `full` / `ask` metadata and need no upstream plugin or Python. `full` means the prompt and its resources are consumable by the OpenCode adapter, not that the output has been accepted in a deployed environment.
 
-选择依据、上游版本、许可证和验证场景见 [PM/BA 技能吸收评估](docs/pm-ba-skills-adoption.md)。`master` 保存完整技能库；`business` 提供 Business Assistant 的角色技能集，新增内容应同步到两个分支。
+They complement `collect_requirements_to_bundle` and `collect_research_notes_to_bundle`. Writing to a bundle or creating Jira issues still goes through those integrations and their confirmation flows: the stories CSV is the input for `jira_bulk_create_from_csv`, and the PRD keeps the `requirements.yaml` buckets so the bundle step can lift them.
+
+Selection basis, pinned upstream versions, licences and review scenarios: [docs/pm-ba-skills-adoption.md](docs/pm-ba-skills-adoption.md). `master` carries the full library; `business` carries the Business Assistant subset. Add new skills to both.
 
 ## Runtime mount model
 
