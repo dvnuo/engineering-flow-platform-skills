@@ -1,6 +1,6 @@
 # break-down-user-stories
 
-Value-sliced epics and stories with acceptance criteria, dependency order and a two-way coverage matrix, plus a CSV for `jira_bulk_create_from_csv`. Deliverables: `output/stories-<slug>.md` and `output/stories-<slug>.csv` with download links.
+Value-sliced epics and stories with acceptance criteria, dependency order and a two-way coverage matrix, plus a CSV for `jira-bulk-create-from-csv`. Deliverables: `output/stories-<slug>.md` and `output/stories-<slug>.csv` with download links.
 
 ## Files
 

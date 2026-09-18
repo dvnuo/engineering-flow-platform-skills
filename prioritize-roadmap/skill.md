@@ -1,27 +1,6 @@
 ---
 name: prioritize-roadmap
 description: "Rank product initiatives with a reviewable basis (RICE only when the inputs allow it), record the trade-offs, and draft an outcome-based Now/Next/Later roadmap with dependencies, capacity and commitment status. Use when a PM or BA must prioritise a backlog, justify a ranking, or sequence a roadmap."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /prioritize-roadmap
-  - prioritize a product backlog
-  - create an outcome roadmap
-  - 需求优先级与路线图规划
-  - 用 RICE 排序产品需求
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - product-management
 ---
 
 # Prioritisation and outcome roadmap
@@ -34,7 +13,7 @@ Produce a ranking whose reasoning can be checked, and, when asked, an outcome-ba
 2. Every number comes from the member's message, an attached file, or a tool result. Never invent reach, effort, confidence, capacity or release dates. Write `Unknown` and say who can supply the value.
 3. Separate the mechanical score from the recommended order, and the recommendation from what is already committed or approved.
 4. Write the document and the reply in the language the member used. Keep candidate IDs and headings stable across revisions.
-5. This skill drafts the analysis. It does not reorder Jira, publish a roadmap or write bundles, and it never claims that it did.
+5. This skill drafts the analysis. It does not reorder Jira or publish a roadmap, and it never claims that it did.
 
 ## Inputs
 
@@ -95,9 +74,4 @@ Now/Next/Later is a planning order, not a commitment. List existing commitments 
 
 - Requirements for the items in Now: `write-product-requirements`.
 - Metric definitions for the outcomes: `define-product-metrics`.
-- A readout deck: the `pptx` skill, where the assistant has it, built from this file.
 - Changes to Jira ranking or fields go through the existing Jira flows, not through this skill.
-
-## Provenance
-
-Method adapted from Pawel Huryn's phuryn/pm-skills (MIT). Pinned sources, licence and the EFP additions are listed in `README.md` next to this file.

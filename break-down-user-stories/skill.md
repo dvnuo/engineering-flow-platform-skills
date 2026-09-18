@@ -1,28 +1,6 @@
 ---
 name: break-down-user-stories
 description: "Decompose a PRD or requirement list into value-sliced epics and implementable user stories with acceptance criteria, dependency order, a two-way coverage matrix, and a CSV ready for Jira bulk import. Use when a PM or BA asks to split requirements into epics and stories, write acceptance criteria for stories, or check that stories cover the requirements."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /break-down-user-stories
-  - break requirements into epics and user stories
-  - write user stories with acceptance criteria
-  - 拆分用户故事和验收标准
-  - 将需求拆成史诗和故事
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - product-management
-    - business-analysis
 ---
 
 # Break down user stories
@@ -35,7 +13,7 @@ Turn a PRD, business rules, designs or an existing requirement list into epics a
 2. Every story traces to a requirement, a rule or a labelled assumption from the member's message, an attached file, or a tool result. Never invent requirements, thresholds, story points, person-days or team commitments.
 3. Coverage is only `complete` when acceptance criteria cover every constraint of the requirement. Items marked `To confirm`, `excluded` or without acceptance criteria never count as covered.
 4. Write the document and the reply in the language the member used. Reuse REQ, NFR, UX, BR and AC IDs from the source; new IDs never reuse an existing number.
-5. This skill drafts. It does not create Jira issues, write bundles or update sprint status, and it never claims that it did.
+5. This skill drafts. It does not create Jira issues or update sprint status, and it never claims that it did.
 
 ## Inputs
 
@@ -76,10 +54,5 @@ Turn a PRD, business rules, designs or an existing requirement list into epics a
 
 ## Hand-offs
 
-- Creating the stories in Jira: `jira_bulk_create_from_csv` with the CSV and an example issue; it runs mapping and a dry run and creates nothing before the member confirms.
+- Creating the stories in Jira: `jira-bulk-create-from-csv` with the CSV and an example issue; it runs mapping and a dry run and creates nothing before the member confirms.
 - Readiness before implementation: `review-requirements-readiness`.
-- Test design from a bundle: `design_test_cases_from_bundle` works from `requirements.yaml`, so keep the AC IDs stable when the PRD is collected into a bundle.
-
-## Provenance
-
-Method rewritten from the BMAD-METHOD epics-and-stories workflow (MIT). Pinned sources, licence, trademark note and the EFP additions are listed in `README.md` next to this file.

@@ -60,4 +60,4 @@ Research question and the decision it informs -> last real occurrence -> steps t
 |---|---|---|---|---|
 | | | | Unknown | |
 
-Status: analysis draft. List a requirement or bundle path only when the member supplied it; nothing was written there.
+Status: analysis draft. List a requirements document only when the member supplied it; nothing was written there.

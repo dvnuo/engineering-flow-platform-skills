@@ -1,269 +1,50 @@
-# engineering-flow-platform-skills
+# engineering-flow-platform-skills (business branch)
 
-This repository is the standalone skills source for Engineering Flow Platform (EFP).
+Skills for the **Business Assistant** in Engineering Flow Platform (EFP): requirements, planning and analysis work for Product Managers (PM) and Business Analysts (BA). Portal clones this branch into each Business Assistant runtime container at `/app/skills`, and the native agent discovers every `<skill-name>/skill.md` under it.
 
-## PM / BA skills
+`master` carries the full skill library. This branch is a curated subset for the native agent: no Python, no validator, no OpenCode metadata. Copy a skill directory from `master` when the role needs it; do not merge `master` into this branch.
 
-Skills for Product Managers (PM) and Business Analysts (BA). Each one is prompt-only, works from what the member supplies (attached files, pasted text, or Jira, Confluence and GitHub sources fetched with the runtime CLIs) and delivers a reviewable Markdown document under `output/` with a download link. Skill text is English; the document and the reply follow the member's language.
+## Skills
 
 | Task | Skill | Deliverable |
 | --- | --- | --- |
-| Validate a user problem or opportunity | [product-discovery](product-discovery/skill.md) | `output/discovery-<slug>.md`: evidence log, opportunities, assumptions, test cards |
-| Rank candidates and sequence a roadmap | [prioritize-roadmap](prioritize-roadmap/skill.md) | `output/roadmap-<slug>.md`: reviewable ranking, trade-offs, outcome roadmap |
-| Define success metrics | [define-product-metrics](define-product-metrics/skill.md) | `output/metrics-<slug>.md`: metric dictionary, guardrails, instrumentation map |
-| Write or complete a PRD | [write-product-requirements](write-product-requirements/skill.md) | `output/prd-<slug>.md`: scope, requirements, acceptance criteria, sources |
-| Split delivery work | [break-down-user-stories](break-down-user-stories/skill.md) | `output/stories-<slug>.md` and `.csv`: epics, stories, acceptance criteria, coverage matrix |
-| Judge whether requirements can be handed over | [review-requirements-readiness](review-requirements-readiness/skill.md) | `output/readiness-<slug>.md`: verdict, findings, closing conditions |
-| Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md`: as-is and to-be process, decision tables, exceptions |
-| Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md`: diff, trace matrix, options, update list |
+| Validate a user problem or opportunity | [product-discovery](product-discovery/skill.md) | `output/discovery-<slug>.md` |
+| Rank candidates and sequence a roadmap | [prioritize-roadmap](prioritize-roadmap/skill.md) | `output/roadmap-<slug>.md` |
+| Define success metrics | [define-product-metrics](define-product-metrics/skill.md) | `output/metrics-<slug>.md` |
+| Write or revise a PRD | [write-product-requirements](write-product-requirements/skill.md) | `output/prd-<slug>.md` |
+| Split requirements into epics and stories | [break-down-user-stories](break-down-user-stories/skill.md) | `output/stories-<slug>.md` and `.csv` |
+| Judge whether requirements can be handed over | [review-requirements-readiness](review-requirements-readiness/skill.md) | `output/readiness-<slug>.md` |
+| Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md` |
+| Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md` |
+| Create Jira issues from a CSV | [jira-bulk-create-from-csv](jira-bulk-create-from-csv/skill.md) | Jira issues, after a mapping table and a dry run |
+| Work a Jira issue assigned through a Portal delegation | [delegation-jira-assignee](delegation-jira-assignee/skill.md) | Status comment body returned to Portal |
+| Answer a Jira mention delivered through a Portal delegation | [delegation-jira-mention](delegation-jira-mention/skill.md) | Status comment body returned to Portal |
+
+The eight PM/BA skills are prompt-only. They work from what the member supplies (attached files under `uploads/`, pasted text, or Jira, Confluence and GitHub sources fetched with the runtime CLIs) and write a reviewable Markdown document under `output/`, announced with a `workspace:` download link. Skill text is English; the document and the reply follow the member's language. The stories CSV is the input for `jira-bulk-create-from-csv`. The two delegation skills are selected by name in a Portal delegation rule.
 
 Example: `/write-product-requirements Draft a PRD for invoice approval from the attached interview notes; separate facts from assumptions and list the acceptance criteria still to confirm.`
 
-In the native agent only `name` and `description` drive activation (a `/<skill-name>` line, the agent profile, or the model choosing the skill by description); the `triggers` list is documentation for the validator and Portal. The skills use `prompt_only` / `full` / `ask` metadata and need no upstream plugin or Python. `full` means the prompt and its resources are consumable by the OpenCode adapter, not that the output has been accepted in a deployed environment.
+## How the native agent uses a skill
 
-They complement `collect_requirements_to_bundle` and `collect_research_notes_to_bundle`. Writing to a bundle or creating Jira issues still goes through those integrations and their confirmation flows: the stories CSV is the input for `jira_bulk_create_from_csv`, and the PRD keeps the `requirements.yaml` buckets so the bundle step can lift them.
+- Only `name` and `description` from the frontmatter reach the model. A skill is activated by a `/<skill-name>` line, by the agent profile, or by the model choosing it from the description, so the description says what the skill produces and when to use it.
+- The body of an active skill is injected in full. Files next to `skill.md` (for example `references/template.md`) are read on demand with the `read` tool or `skill(name, file=...)`.
+- Deliverables go under `output/` in the workspace, and the reply links them as `[Download x.md](workspace:output/x.md)`; Portal turns that into a download link.
 
-Selection basis, pinned upstream versions, licences and review scenarios: [docs/pm-ba-skills-adoption.md](docs/pm-ba-skills-adoption.md). `master` carries the full library; `business` carries the Business Assistant subset. Add new skills to both.
-
-## Runtime mount model
-
-Portal checks out this repository into each agent runtime container at:
-
-`/app/skills`
-
-EFP runtime loads skills from that path using `SkillRegistry(project_skills_dir="/app/skills")` and discovers:
-
-- `*.md` at skills root (legacy)
-- `<skill_dir>/skill.md` (preferred)
-
-> Important: the repository root **is** the skills root. Do **not** create a nested `skills/` directory.
-
-
-## OpenCode compatibility model
-
-This repository remains the EFP source skills root.
-
-OpenCode runtime consumes this repository indirectly:
-- Portal checks out this repo to /app/skills.
-- opencode-runtime reads /app/skills.
-- opencode-runtime generates /workspace/.opencode/skills/<normalized-name>/SKILL.md.
-- generated .opencode assets must not be committed back to this repo.
-
-Skill names with underscores are allowed as EFP names. The runtime converter normalizes them to OpenCode-compatible hyphen names, for example:
-
-    collect_requirements_to_bundle -> collect-requirements-to-bundle
-
-Every production `skill.md` frontmatter must include the base OpenCode metadata:
-
-```yaml
-opencode:
-  execution_kind: prompt_only | programmatic | hybrid
-  compatibility: full | degraded | unsupported
-  permission:
-    default: allow | ask | deny
-  capability_tags:
-    - ...
-```
-
-Every skill that declares `tools` or `task_tools` must also declare `opencode.tool_mappings`.
-
-Every skill that declares `tools` or `task_tools` must additionally declare:
-
-```yaml
-opencode:
-  tool_mappings:
-    <native_tool_name>: efp_<native_tool_name>
-```
-
-Example:
-
-```yaml
-opencode:
-  execution_kind: prompt_only
-  compatibility: degraded
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - tools-required
-  tool_mappings:
-    github_get_pr: efp_github_get_pr
-    jira_search: efp_jira_search
-```
-
-Rules:
-- `tools` and `task_tools` keep native EFP tool names.
-- `opencode.tool_mappings` maps each native EFP tool name to its OpenCode wrapper name.
-- The wrapper name must currently be `efp_<native_tool_name>`.
-- Tool names and mapping values must be canonical strings with no leading or trailing whitespace; the validator rejects non-canonical names instead of normalizing them.
-- Duplicate YAML keys are invalid; the validator rejects duplicate keys instead of relying on YAML last-write-wins behavior.
-- This repo does not decide whether the wrapper is enabled at runtime; the Tools repo and opencode-runtime decide availability.
-- Skills using tool_mappings should generally keep `opencode.compatibility: degraded` unless the runtime has verified full parity.
-
-- Production skills should not use `permission.default=allow`.
-- Prompt-only and tools-required production skills should default to `ask`.
-- Native-only / unsupported skills must use `deny`.
-- `allow` is reserved for the deterministic integration fixture under `integration/fixtures`.
-
-Python-backed skills (skills that include `skill.py`) execute in native EFP runtime, but OpenCode converter currently does not execute `skill.py`. Therefore those skills must be marked:
-
-```yaml
-opencode:
-  execution_kind: programmatic
-  compatibility: unsupported
-  permission:
-    default: deny
-```
-
-Integration fixtures:
-- live under `integration/fixtures`
-- are not part of production skills
-- support dual-runtime smoke coverage
-- may use `permission.default=allow` for deterministic test behavior
-
-## Required repository structure
+## Layout
 
 ```text
-/app/skills/
-  <skill-name>/skill.md
-  <skill-name>/skill.py        # optional, for Python-backed legacy/programmatic skills
-  shared_bundle_source_loaders.py
-  decorator.py
+/app/skills/                      <- this repository root
+  <skill-name>/skill.md           <- frontmatter: name, description; then the instructions
+  <skill-name>/references/...     <- templates and other files the skill reads on demand
+  <skill-name>/README.md          <- provenance for adapted methods (upstream links, licence)
 ```
 
-- `skill.md` is the SkillRegistry discovery entrypoint.
-- `skill.py` is optional implementation code.
-- Python-backed skills may import EFP runtime modules such as `src.*` because those are provided by the `engineering-flow-platform` runtime image at execution time.
+- The repository root is the skills root. Do not create a nested `skills/` directory.
+- `name` must equal the directory name. Everything else in the frontmatter is ignored by the runtime, so leave it out.
+- Skills adapted from open-source material keep the upstream licence verbatim in `references/LICENSE.upstream.txt` and pin the upstream commit in their `README.md`.
 
-## Updating skills in deployed agents
+## Updating deployed agents
 
-After changing skill files in this repo, apply the new code by either:
+After a change on this branch, either update the assistant type's skill branch or version in Portal, or restart the Kubernetes deployment so `/app/skills` is cloned again. Merging alone does not update running agents.
 
-1. Updating the agent's skill branch/version in Portal, or
-2. Restarting the K8s deployment so `/app/skills` is checked out again.
-
-## Minimal `skill.md` template
-
-```yaml
----
-name: example-skill
-description: Short description
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /example-skill
-  - natural language trigger
-tools: []
-output_format: markdown
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
----
-Body instructions...
-```
-
-## Local validation
-
-Run:
-
-```bash
-python scripts/validate_skills.py
-python scripts/validate_skills.py --opencode-compatible
-python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
-```
-
-## Machine-readable Skills contract
-
-Export deterministic JSON metadata contract for production and integration fixtures:
-
-```bash
-python scripts/export_skills_contract.py --scope production --pretty
-python scripts/export_skills_contract.py --root integration/fixtures --scope integration-fixtures --pretty
-```
-
-The exporter output is deterministic metadata only (no runtime execution, no `.opencode` generation). CI and integration smoke both validate this exporter output. Do not commit generated JSON files unless a future release process explicitly requires it.
-
-The exporter first runs `validate_skills.py --opencode-compatible` as a gate. If validation fails, no contract file is written.
-
-The validator verifies:
-
-- Every skill directory containing `skill.py` or `skill.md` has a `skill.md`
-- `skill.md` includes required frontmatter fields
-- skill names are unique
-- referenced files listed in frontmatter `references` exist (best-effort)
-- validator fails if a nested `skills/` directory is present
-
-
-OpenCode compatibility mode (`--opencode-compatible`) also verifies:
-
-- normalized OpenCode skill-name collisions
-- `tools`/`task_tools` must be lists (if present)
-- `opencode` metadata exists and is a mapping
-- `opencode.execution_kind` is one of `prompt_only`, `programmatic`, `hybrid`
-- `opencode.compatibility` is one of `full`, `degraded`, `unsupported`
-- `opencode.permission.default` is one of `allow`, `ask`, `deny`
-- `opencode.capability_tags` is a non-empty list of non-empty strings
-- `opencode.tool_mappings` must cover every `tools` / `task_tools` item when those fields are non-empty
-- tool mapping values must follow the canonical `efp_<native_tool_name>` wrapper naming rule
-- Python-backed skills cannot declare `execution_kind: prompt_only`
-- Python-backed skills cannot claim `compatibility: full`
-- unsupported skills must use `opencode.permission.default: deny`
-
-Underscore skill names are allowed in this repository; runtime converter normalization maps them to hyphen-form names.
-
-
-## T13 acceptance commands
-
-Required Skills repo checks:
-
-```bash
-python scripts/validate_skills.py
-python scripts/validate_skills.py --opencode-compatible
-python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
-python -m pytest -q
-integration/scripts/smoke_skills.sh
-```
-
-The T13 CI stage for this repo must pass `python scripts/validate_skills.py --opencode-compatible`.
-
-## Do not commit generated OpenCode assets
-
-Do not commit:
-- .opencode/
-- .opencode/skills/*/SKILL.md
-- skills-index.json
-
-These files are generated by opencode-runtime inside the runtime container.
-
-## This branch: Business Assistant
-
-Requirements, planning, and test design for BAs and PMs.
-
-Assistant types point at a branch of this repository, and each branch carries only
-the skills its role needs. Shared tooling (`scripts/`, `tests/`, `integration/`, and
-the root helper modules) stays on every branch.
-
-Skills on `business`:
-
-- `product-discovery`
-- `prioritize-roadmap`
-- `define-product-metrics`
-- `write-product-requirements`
-- `break-down-user-stories`
-- `review-requirements-readiness`
-- `analyze-business-process`
-- `analyze-requirement-change`
-- `collect_requirements_to_bundle`
-- `collect_research_notes_to_bundle`
-- `design_test_cases_from_bundle`
-- `generate_implementation_plan_from_bundle`
-- `jira_bulk_create_from_csv`
-- `mobilex-test-cases-generator`
-- `delegation-jira-assignee`
-- `delegation-jira-mention`
-
-To add or remove one, change it here and on `master` so the two do not drift.
+CI checks that every `<skill-name>/skill.md` has a frontmatter `name` equal to its directory, a `description`, no duplicate names, and no Chinese text in the skill body.

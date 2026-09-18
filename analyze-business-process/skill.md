@@ -1,32 +1,11 @@
 ---
 name: analyze-business-process
 description: "Model the current (as-is) and proposed (to-be) business process from supplied evidence: steps with actors and hand-offs, business rules as decision tables, exceptions and recovery paths, gaps, and the hand-off to requirements. Use when a BA or PM asks to map or document a business process, clarify business rules and approval logic, or compare the current process with a proposed one."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /analyze-business-process
-  - analyze business process and decision rules
-  - map as-is and to-be process
-  - 梳理业务流程和业务规则
-  - 分析现状流程与目标流程
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - business-analysis
 ---
 
 # Analyse a business process
 
-Turn interviews, operating instructions, requirement fragments or bundle content into a reviewable BA document that connects the current process, the proposed process, the business rules and the exception handling. Tables are enough to express the result; no diagramming tool is needed. Add a Mermaid flowchart only when the member asks for a diagram.
+Turn interviews, operating instructions or requirement fragments into a reviewable BA document that connects the current process, the proposed process, the business rules and the exception handling. Tables are enough to express the result; no diagramming tool is needed. Add a Mermaid flowchart only when the member asks for a diagram.
 
 ## Non-negotiable rules
 
@@ -34,7 +13,7 @@ Turn interviews, operating instructions, requirement fragments or bundle content
 2. Every step, rule, threshold and owner comes from the member's message, an attached file, or a tool result. Never invent durations, savings, approval authority or policy references. Write `To confirm` and name who can confirm.
 3. Keep actual practice, written rules and interviewee suggestions apart, and keep the to-be process apart from current facts. A proposed rule is a proposal until the member says it is approved.
 4. Write the document and the reply in the language the member used. Reuse step, rule and requirement IDs from the sources.
-5. This skill analyses. It does not write bundles, create Jira issues or change any business configuration, and it never claims that it did.
+5. This skill analyses. It does not create Jira issues or change any business configuration, and it never claims that it did.
 
 ## Inputs
 
@@ -81,8 +60,3 @@ Map every process or rule change that should become a requirement as `step -> BR
 
 - Requirements for the to-be changes: `write-product-requirements`, carrying the BR and TO IDs.
 - A rule change against an existing requirement baseline: `analyze-requirement-change`.
-- Writing the result into a bundle: `collect_requirements_to_bundle`.
-
-## Provenance
-
-EFP-authored BA method. Structure draws on the journey mapping and PRD references in alirezarezvani/claude-skills (MIT) and on the process-mapper skill there for the working-versus-waiting time view; the closest upstream analogues are listed in `README.md` next to this file.

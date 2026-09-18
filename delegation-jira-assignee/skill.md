@@ -1,25 +1,6 @@
 ---
 name: delegation-jira-assignee
 description: Handle long-running Jira assignee delegations, return a Portal-owned Jira status comment body, and assign the issue back to the reporter.
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - jira_assignee
-  - delegation jira assignee
-  - jira assigned delegation
-  - assigned Jira issue delegation
-output_format: json
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - delegation
-    - jira
-    - assignee
-    - long-running
 ---
 
 # Delegation Jira Assignee

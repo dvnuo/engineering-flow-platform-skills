@@ -1,38 +1,13 @@
 ---
 name: jira-bulk-create-from-csv
-description: Bulk create Jira issues/test cases from CSV, using an example Jira ticket to auto-discover field and custom-field mappings; perform mapping and dry-run first, then create after confirmation.
-version: 1.0.0
-owner: qa-platform
-triggers:
-  - Upload CSV to bulk create Jira test cases
-  - Create by referencing a Jira ticket
-  - Create Jira issues using the field structure from an example ticket
-  - Bulk import testcases.csv into Jira
-  - CSV to Jira issues
-  - bulk create Jira test cases from CSV
-planning_mode: required
-execution_style: stepwise
-ask_user_policy: before_write
-output_format: markdown
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - jira
-    - csv
-    - bulk-create
-    - test-case
-    - opencode-bash-cli
-    - human-confirmation
+description: "Bulk-create Jira issues or test cases from an uploaded CSV, using an example Jira issue to discover field and custom-field mappings, with a mapping table and a dry run shown before anything is created. Use when a member uploads a CSV of issues, stories or test cases (for example the stories CSV from break-down-user-stories) and wants them created in Jira."
 ---
 
 # Jira Bulk Create From CSV
 
 Use this skill when the user wants to bulk create Jira issues or test cases from an uploaded CSV, especially when they provide an example Jira issue whose field structure should guide discovery and mapping.
 
-This skill fixes the safe workflow and command order only. It must not hardcode Jira custom fields, project, issue type, templates, issue keys, or CSV column mappings. Field discovery, mapping, dry-run, and creation are performed by the generic `jira` CLI through OpenCode Bash. The LLM may explain results, summarize ambiguity, and ask the user to choose among ambiguous mappings.
+This skill fixes the safe workflow and command order only. It must not hardcode Jira custom fields, project, issue type, templates, issue keys, or CSV column mappings. Field discovery, mapping, dry-run, and creation are performed by the generic `jira` CLI through the shell tool. The LLM may explain results, summarize ambiguity, and ask the user to choose among ambiguous mappings.
 
 ## Non-Negotiable Rules
 
