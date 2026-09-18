@@ -1,60 +1,60 @@
-# 优先级与路线图草稿
+# Prioritisation and roadmap template
 
-未知数据保持未知；评分方法、建议和既有承诺分别标注。仅需排序时省略路线图章节。
+Unknown data stays `Unknown`. Scoring method, recommendation and existing commitments are labelled separately. Drop the roadmap sections when only a ranking was asked for.
 
-## 决策依据
+## Decision basis
 
-- 产品目标与观测指标：
-- 候选范围与决策窗口：
-- 使用方法及适用理由：
-- RICE 使用时：Reach 实体与时间窗；Impact 尺度；Confidence 为 0–1；Effort 单位与范围。
-- 原始资料及具体定位：
+- Product goal and observed metric:
+- Candidate scope and decision window:
+- Method used and why it applies:
+- If RICE: Reach entity and window; Impact scale; Confidence as 0 to 1; Effort unit and what it covers.
+- Source material and exact locations:
 
-## 约束与依赖
+## Constraints and dependencies
 
-| 约束/依赖 ID | 关联 I 编号 | 内容 | 证据 | 已确认/假设 | 冲突与待确认人 |
+| Constraint / dependency ID | Linked I IDs | Content | Evidence | Confirmed / assumed | Conflict and who confirms |
 |---|---|---|---|---|---|
-| C-01 | 待填写 | 待填写 | 待填写 | 待填写 | 待填写 |
+| C-01 | | | | | |
 
-## 候选项与排序
+## Candidates and ranking
 
-| I 编号/原 ID | 用户问题与结果 | 证据 | 影响/成本依据 | 约束及依赖 | 建议及理由 |
+| I ID / original ID | User problem and outcome | Evidence | Impact / cost basis | Constraints and dependencies | Recommendation and reason |
 |---|---|---|---|---|---|
-| I-01 | 待填写 | 待填写 | 未知 | 待填写 | 待填写 |
+| I-01 | | | Unknown | | |
 
-### RICE 计算（仅在输入充分且可比时）
+### RICE calculation (only when inputs are sufficient and comparable)
 
-公式：`R × I × C / E`。缺数或输入无效的项目保留在表中，分数写“不可计算”。
+Formula: `R x I x C / E`. Items with missing or invalid inputs stay in the table with `not computable`.
 
-| I 编号 | R 及单位/窗 | I 及尺度 | C 比例及证据 | E 及单位 | 算式/得分 | 得分序 | 建议序及调整理由 |
+| I ID | R (unit, window) | I (scale) | C (0 to 1, evidence) | E (unit) | Calculation / score | Score rank | Recommended rank and adjustment reason |
 |---|---|---|---|---|---|---|---|
-| I-01 | 未知 | 未知 | 未知 | 未知 | 不可计算 | 不适用 | 待填写 |
+| I-01 | Unknown | Unknown | Unknown | Unknown | not computable | n/a | |
 
-无量化输入时改用定性比较表，保留依据、未知和需要补充的信息。
+Without quantitative inputs, use a qualitative comparison table instead and keep the basis, unknowns and missing information.
 
-## 决策取舍
+## Trade-off decisions
 
-| 类别 | I 编号 | 理由与证据 | 潜在机会成本 | 改变决定的条件 | 决策人/状态 |
+| Bucket | I IDs | Reason and evidence | Opportunity cost | What would change the decision | Decision owner / status |
 |---|---|---|---|---|---|
-| 推进/先验证/暂缓/未选 | 待填写 | 待填写 | 待填写 | 待填写 | 未知/建议 |
+| Proceed / Validate first / Defer / Not selected | | | | | Unknown / suggested |
 
-关键估算敏感性：哪些已有范围会改变排序；没有范围时明确待补证据。存在覆盖或收益重叠时单列说明。
+Sensitivity: which supplied ranges change the order; without ranges, the evidence still needed. Overlapping reach or benefit is listed separately.
 
-## 结果路线图
+## Outcome roadmap
 
-| 窗口 | I 编号/候选交付物 | 用户结果与业务关联 | 指标与基线/目标状态 | 前置依赖 | 团队/投入 | 承诺状态 |
+| Window | I IDs / candidate deliverables | User outcome and business link | Metric and baseline / target status | Prerequisites | Team / effort | Commitment status |
 |---|---|---|---|---|---|---|
-| Now/Next/Later 或已有窗口 | 待填写 | 待填写 | 未知 | 待填写 | 未知 | 建议/已确认并附来源 |
+| Now / Next / Later or existing window | | | Unknown | | Unknown | suggested / confirmed (source) |
 
-| 团队/窗口 | 可用容量与单位 | 已知投入与单位 | 前置项检查 | 可行性结论及证据 |
+| Team / window | Available capacity and unit | Known effort and unit | Prerequisite check | Feasibility and evidence |
 |---|---|---|---|---|
-| 待填写 | 未知 | 未知 | 待填写 | 容量可行性未确认 |
+| | Unknown | Unknown | | capacity feasibility not confirmed |
 
-## 未决项与复查
+## Open items and review
 
-- 不能同时满足的约束及可选取舍：
-- 需要验证的假设及建议负责人：
-- 既有承诺与拟议调整：
-- 复查触发条件：目标变化、证据更新、依赖解除或容量变化。
+- Constraints that cannot all be met and the possible trade-offs:
+- Assumptions to validate and suggested owners:
+- Existing commitments versus proposed adjustments:
+- Review triggers: goal change, new evidence, dependency resolved, capacity change.
 
-交付状态：决策草稿。未修改外部排序、计划或工单。
+Status: decision draft. No external ranking, plan or issue was modified.

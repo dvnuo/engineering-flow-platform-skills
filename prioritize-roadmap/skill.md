@@ -1,6 +1,6 @@
 ---
 name: prioritize-roadmap
-description: "Prioritize product initiatives and draft outcome-based roadmaps with explicit scoring, dependencies, capacity, and decision trade-offs. Use when PMs or BAs must rank a backlog or sequence a roadmap."
+description: "Rank product initiatives with a reviewable basis (RICE only when the inputs allow it), record the trade-offs, and draft an outcome-based Now/Next/Later roadmap with dependencies, capacity and commitment status. Use when a PM or BA must prioritise a backlog, justify a ranking, or sequence a roadmap."
 version: 1.0.0
 owner: engineering-flow-platform
 triggers:
@@ -13,7 +13,6 @@ tools: []
 output_format: markdown
 references:
   - references/template.md
-  - references/LICENSE.upstream.txt
 opencode:
   execution_kind: prompt_only
   compatibility: full
@@ -21,72 +20,84 @@ opencode:
     default: ask
   capability_tags:
     - prompt-only
+    - deliverable
     - product-management
 ---
 
-# 产品优先级与结果路线图
+# Prioritisation and outcome roadmap
 
-交付能复核取舍依据的排序和路线图草稿。将用户/业务结果、证据、资源与依赖连起来，保留决策者尚未确认的部分。
+Produce a ranking whose reasoning can be checked, and, when asked, an outcome-based roadmap. Connect user and business outcomes, evidence, capacity and dependencies, and keep visible what the decision makers have not confirmed yet.
 
-## 输入和范围
+## Non-negotiable rules
 
-- 读取已提供的目标、候选需求、研究证据、现行排序、团队容量、依赖、时间窗口和已有承诺。
-- 为候选项保留原 ID；没有 ID 时创建本地 I 编号，并注明并非 Jira 工单号。
-- 只做排序时无需生成完整路线图。既有方法适用时沿用，不为套用框架而重建流程。
-- 关键目标或比较口径不清时提出少量必要问题；其他缺口写“未知”。不虚构 Reach、成本、置信度、容量或发布日期。
-- 输出分析草稿和可交接表格，不自动调整 Jira、发布路线图或写入 bundle。
+1. The deliverable is a Markdown file under `output/` plus a short reply with a download link. Do not paste the whole document into chat.
+2. Every number comes from the member's message, an attached file, or a tool result. Never invent reach, effort, confidence, capacity or release dates. Write `Unknown` and say who can supply the value.
+3. Separate the mechanical score from the recommended order, and the recommendation from what is already committed or approved.
+4. Write the document and the reply in the language the member used. Keep candidate IDs and headings stable across revisions.
+5. This skill drafts the analysis. It does not reorder Jira, publish a roadmap or write bundles, and it never claims that it did.
 
-## 1. 先处理硬约束
+## Inputs
 
-将输入中已确认的截止日期、合同义务、安全或合规要求、依赖和不可用资源单列，注明证据及负责人。未经确认的限制记为假设。
+- Attached files land under `uploads/` in the workspace; read them with the read tool before quoting anything.
+- When the member points at a Jira issue, Confluence page or GitHub file, fetch it through bash with the runtime CLIs (`jira`, `confluence`, `gh`), always with `--json`, and read the `ok` / `data` / `error` envelope. Discover commands with `jira commands --json` or `confluence commands --json`. A source you could not fetch is a missing input.
+- Read the goals, candidate items, evidence, current ranking, team capacity, dependencies, time windows and existing commitments the member supplied. Keep original IDs (Jira keys, backlog IDs); otherwise assign `I-01`, `I-02`, ... and say these are local IDs, not Jira keys.
+- If the member only wants a ranking, skip the roadmap. If a method is already in use (ICE, weighted scoring, MoSCoW), apply it as defined instead of forcing RICE.
+- Ask at most one question, and only when the goal or the comparison basis is unclear. Record every other gap as `Unknown`.
 
-区分必须完成、可选、需先验证和当前被阻塞的工作。评分不能取消已确认义务；硬约束相互冲突或容量不足时标明不可行之处与待决策取舍，不用低分掩盖冲突。
+## Workflow
 
-## 2. 统一比较依据
+### 1. Hard constraints first
 
-每个候选项说明目标用户、问题、预期结果、证据、成本与风险。将“上线功能”改写为可观测的用户/业务改变，并保留原条目对应关系。
+List confirmed deadlines, contractual obligations, security or compliance requirements, dependencies and unavailable resources, each with evidence and owner. Unconfirmed constraints are assumptions.
 
-数据充分且可比时可用 RICE；数据不足时用影响/投入的定性比较，明确依据和不确定性。不要把未知当成零或中间档，不给完全不同口径的分数排出统一总榜。
+Classify work as must-do, optional, validate-first or blocked. A score never cancels a confirmed obligation. When constraints conflict or capacity is short, show what is infeasible and which trade-off needs a decision; do not hide the conflict behind a low score.
 
-采用 RICE 时在计算前声明：
+### 2. One comparison basis
 
-- **R（Reach）**：同一时间窗、同一实体的受影响数量，例如每季度受影响账户数；账户不能与用户人数混算。
-- 独立用户/账户数跨周期不能直接相加或等比例折算；先核对跨期去重、覆盖范围和季节性。基于额外假设的换算只能列为情景分析，不当作观测值参与确定排序。
-- **I（Impact）**：对共同目标的单位影响，使用已同意的评分尺度；建议尺度需标明待确认。不要再将 Reach 乘进 Impact。
-- **C（Confidence）**：将输入百分比规范为 0–1 比例，80% 写为 0.8；附证据依据，不从描述语气猜测数值。
-- **E（Effort）**：同一单位的投入，例如人周，说明涵盖设计、研发、测试和协调的范围；必须大于零。
-- **计算**：`RICE = R × I × C / E`，展示原始输入、单位、计算值和来源；缺数、E=0、负值或超范围输入不产生有效分数。
+For every candidate: target user, problem, expected outcome, evidence, cost and risk. Rewrite "ship feature X" as an observable user or business change while keeping the link to the original item.
 
-如用户已有 ICE、加权评分或 MoSCoW 方法，明示其尺度、权重及规则；方法不匹配时解释局限，不能静默换算成 RICE。
+Use RICE only when the inputs are sufficient and comparable. Otherwise compare impact against effort qualitatively and state the uncertainty. Unknown is not zero and not a middle score, and items measured on different scales do not share one ranking.
 
-## 3. 给出取舍建议
+When RICE applies, declare before calculating:
 
-将机械得分与最终建议次序分开。若依赖、已确认义务或战略选择改变得分顺序，逐项写明理由、证据与待确认决策人。
+- **Reach**: the count of one entity in one time window (for example accounts affected per quarter). Accounts are not users. Distinct counts from different periods cannot be added or prorated without checking deduplication, coverage and seasonality; any conversion built on extra assumptions is a scenario, not an observed value.
+- **Impact**: per-unit effect on the shared goal, on an agreed scale; a proposed scale is labelled `To confirm`. Do not multiply reach into impact again.
+- **Confidence**: a proportion between 0 and 1 (80% becomes 0.8), backed by evidence, never guessed from tone.
+- **Effort**: one unit (for example person-weeks) covering design, development, testing and coordination, and greater than zero.
+- **Score**: `RICE = R x I x C / E`. Show the raw inputs, units, result and sources. Missing data, `E = 0`, negative or out-of-range inputs give `not computable`, not a number.
 
-给出优先推进、先做验证、暂缓和未选项及理由；不机械凑满前五。相近分数不代表确定胜负；使用已有合理估算范围查看结论是否会改变，没有范围则描述会改变排序的未知项。
+### 3. Recommend the trade-offs
 
-对重叠覆盖人群或重复业务收益注明可能重复计算；组合价值不能直接把每项独立收益相加。高影响但低置信度项目可以先安排验证，不因低分永久淘汰。
+Where dependencies, confirmed obligations or strategic choices move an item away from its score order, say so item by item with reason, evidence and the decision owner.
 
-## 4. 形成结果路线图（需要时）
+Bucket items as proceed, validate first, defer or not selected, each with a reason. Do not pad a top-five. Close scores are not a decided order: run a sensitivity check with the ranges the member gave, or name the unknowns that would flip the order.
 
-用 Now/Next/Later 或用户已有的季度/发布窗口组织；每项记录目标用户、期望结果、观测指标、候选交付物、依赖、负责人和置信度依据。
+Flag overlapping reach or double-counted benefit; a portfolio's value is not the sum of independent gains. High-impact, low-confidence items go to validation rather than being dropped.
 
-先画清前置关系并检查循环、遗漏前置项及跨团队依赖，再考虑排序。依赖关系不是日期承诺；没有可靠工期与容量时只能给顺序建议。
+### 4. Outcome roadmap (when asked)
 
-按团队和同一时间单位检查已知投入是否超过可用容量；考虑已知维护/运行投入。容量未知时注明“容量可行性未确认”，不说路线图已可执行。
+Organise by Now/Next/Later or by the member's existing windows. For each entry: target user, expected outcome, metric, candidate deliverables, dependencies, owner and the basis for confidence.
 
-Now/Next/Later 表示规划顺序，不自动等于已承诺/已批准。用户已有的承诺日期与建议调整分开列；确实无法满足时展示冲突与选项，不擅自删除或推迟承诺。
+Map prerequisites first and check for cycles, missing predecessors and cross-team dependencies. Dependencies are not dates: without reliable durations and capacity, give an order only.
 
-## 5. 输出与复核
+Check known effort against available capacity per team and window, including maintenance and run load. Unknown capacity is written as `capacity feasibility not confirmed`.
 
-使用 [排序和路线图模板](references/template.md)。交付目标及比较口径、约束、排序表、取舍记录、路线图和未决项；请求仅涉及排序时省略路线图部分。
+Now/Next/Later is a planning order, not a commitment. List existing commitments separately from proposed changes; when a commitment cannot be met, show the conflict and the options instead of silently dropping or slipping it.
 
-复核单位、分母、数值范围和公式；逐项检查依赖、容量结论及承诺状态。保留缺少证据的条目，说明补什么证据可能改变决定。后续交接引用 I 编号和已有工单链接，不宣称已修改任何外部系统。
+### 5. Deliver
 
-## 来源与适配
+1. Read `references/template.md` (relative to this skill's directory) and keep only the sections the task needs; delete empty sections instead of filling them with placeholders.
+2. Save the document as `output/roadmap-<slug>.md`, where `<slug>` is a short ASCII, lowercase, hyphenated name for the product or planning cycle. For a revision, write to the same path so the earlier link keeps working.
+3. Before replying, re-check units, denominators, value ranges and formulas, then dependencies, capacity conclusions and commitment status. Keep items with missing evidence in the table and say what evidence would change the decision.
+4. Reply in the member's language with: two or three sentences on the ranking and what drives it; the decisions still needed (at most five); the download link written exactly as a workspace link, for example `[Download roadmap-2026-q4.md](workspace:output/roadmap-2026-q4.md)`; and one line saying the file is also in the Server Files panel under `output/`.
 
-方法与结构适配自 Pawel Huryn 的 phuryn/pm-skills，MIT；EFP 增加硬约束、可复核计算、缺数处理和容量/承诺检查。版权和许可见 [上游 MIT 许可](references/LICENSE.upstream.txt)。固定版本：`8607e3b077817f89bf4a9b623246219734ac3be0`。
+## Hand-offs
 
-- [候选需求排序](https://github.com/phuryn/pm-skills/blob/8607e3b077817f89bf4a9b623246219734ac3be0/pm-product-discovery/skills/prioritize-features/SKILL.md)
-- [优先级方法](https://github.com/phuryn/pm-skills/blob/8607e3b077817f89bf4a9b623246219734ac3be0/pm-execution/skills/prioritization-frameworks/SKILL.md)
-- [结果路线图](https://github.com/phuryn/pm-skills/blob/8607e3b077817f89bf4a9b623246219734ac3be0/pm-execution/skills/outcome-roadmap/SKILL.md)
+- Requirements for the items in Now: `write-product-requirements`.
+- Metric definitions for the outcomes: `define-product-metrics`.
+- A readout deck: the `pptx` skill, where the assistant has it, built from this file.
+- Changes to Jira ranking or fields go through the existing Jira flows, not through this skill.
+
+## Provenance
+
+Method adapted from Pawel Huryn's phuryn/pm-skills (MIT). Pinned sources, licence and the EFP additions are listed in `README.md` next to this file.

@@ -1,62 +1,62 @@
-# 需求变更影响草稿模板
+# Requirement change impact template
 
-按变更规模删减。未知值写“待确认”；ID 为示意格式，输出时保留用户已有 ID。没有完整基线时标为初步分析。
+Trim to the size of the change. Write `To confirm` for unknowns. IDs are format examples; keep the member's existing IDs. Without a complete baseline, label the result a preliminary analysis.
 
-## 基线与变更摘要
+## Baseline and change summary
 
-- 基线：[名称、版本/日期、状态及来源]
-- 分析范围：[已提供对象、未评估领域]
-- 变更：[编号、提出者、原因、目标结果]
-- 期望生效：[对象/时间范围或待确认]
-- 决策状态：[拟议 / 已批准并附证据 / 已否决并附证据 / 未知]
+- Baseline: [name, version or date, status, source]
+- Analysis scope: [objects supplied, areas not assessed]
+- Change: [ID, requester, reason category, intended outcome]
+- Intended effect: [objects or time range, or To confirm]
+- Decision status: [proposed / approved with evidence / rejected with evidence / Unknown]
 
-| 来源 ID | 材料与定位 | 版本/日期 | 可靠范围及限制 |
+| Source ID | Material and location | Version / date | Reliable range and limits |
 |---|---|---|---|
-| SRC-01 | [需求文档章节/用户说明] | [版本或未知] | [限制] |
+| SRC-01 | [requirement section / member statement] | [version or Unknown] | [limits] |
 
-## 差异表
+## Difference table
 
-| 变更 ID | 对象 ID | 旧行为及依据 | 拟议行为 | 类型 | 原因/证据 | 待澄清点 |
+| Change ID | Object ID | Old behaviour and basis | Proposed behaviour | Type | Reason / evidence | To clarify |
 |---|---|---|---|---|---|---|
-| CHG-01 | [REQ-ID] | [旧值或基线缺失] | [新值] | [新增/修改/删除/澄清] | SRC-01 | [问题] |
+| CHG-01 | [REQ ID] | [old value, or baseline missing] | [new value] | [added / modified / removed / clarification] | SRC-01 | [question] |
 
-## 追踪与影响矩阵
+## Trace and impact matrix
 
-| 变更 | 来源对象 → 目标对象 | 关系 | 影响内容/拟议动作 | 结论状态 | 证据或推断理由 | 核实角色 |
+| Change | Source object -> target object | Relationship | Impact / proposed action | Status | Evidence or reasoning | Who verifies |
 |---|---|---|---|---|---|---|
-| CHG-01 | REQ-01 → US-01 | [实现关系] | [修改故事行为] | [确认受影响/疑似影响/待核实/确认不受影响] | [定位] | [角色] |
-| CHG-01 | US-01 → AC-01 | [验收关系] | [调整边界场景] | [状态] | [定位] | [角色] |
-| CHG-01 | AC-01 → [测试未知] | [验证关系待补充] | [补齐测试映射] | 待核实 | [缺材料] | [角色] |
+| CHG-01 | REQ-01 -> ST-01 | [implements] | [change story behaviour] | [confirmed affected / suspected / to verify / confirmed unaffected] | [location] | [role] |
+| CHG-01 | ST-01 -> AC-01 | [accepts] | [adjust boundary scenario] | [status] | [location] | [role] |
+| CHG-01 | AC-01 -> [test unknown] | [verification, to add] | [add test mapping] | to verify | [material missing] | [role] |
 
-对象可以是业务规则、流程步骤、需求、故事、验收、测试或依赖；仅保留相关类型，不为凑齐表格虚构对象。
+Objects can be business rules, process steps, requirements, stories, acceptance criteria, tests or dependencies; keep only the relevant types.
 
-| 影响领域 | 具体变化/工作范围 | 证据或假设 | 估算及提供者 | 依赖/负责人 | 未决风险 |
+| Impact area | Specific change / work scope | Evidence or assumption | Estimate and who gave it | Dependency / owner | Open risk |
 |---|---|---|---|---|---|
-| [数据/流程/系统/运营等] | [影响] | [定位] | [团队估算或待估] | [依赖] | [风险] |
+| [data / process / system / operations ...] | [impact] | [location] | [team estimate or to estimate] | [dependency] | [risk] |
 
-覆盖边界：[哪些上下游已有材料，哪些领域未评估，哪些间接影响待核实]。
+Coverage boundary: [which upstream and downstream material exists, which areas were not assessed, which indirect impacts are still to verify].
 
-## 选项比较与建议
+## Options and recommendation
 
-| 选项 | 业务收益 | 成本与风险 | 前置条件/依赖 | 可逆性 | 判断依据 |
+| Option | Business benefit | Cost and risk | Preconditions / dependencies | Reversibility | Basis |
 |---|---|---|---|---|---|
-| [接受/分阶段/暂缓/保持基线等相关选项] | [收益] | [影响或未知] | [条件] | [依据或待确认] | [来源/假设] |
+| [accept / phase / defer / keep baseline, as relevant] | [benefit] | [impact or Unknown] | [conditions] | [basis or To confirm] | [source / assumption] |
 
-- 推荐：[方案及条件]
-- 可能改变建议的证据：[关键未知或反例]
-- 决策人：[已有授权角色或待确认]
-- 决策记录：[尚未决定，或引用实际决定的日期/人/理由]
+- Recommendation: [option and conditions]
+- Evidence that would change it: [key unknowns or counter-examples]
+- Decision owner: [authorised role or To confirm]
+- Decision record: [not yet decided, or the actual decision with date, person and reason]
 
-## 拟议更新清单
+## Proposed updates
 
-| 更新对象/ID | 更新内容 | 前置决策 | 负责人 | 状态 |
+| Object / ID | Update | Prerequisite decision | Owner | Status |
 |---|---|---|---|---|
-| [需求/规则/故事/验收/测试/计划] | [具体修改] | [决定/条件] | [角色] | [拟议/待决定] |
+| [requirement / rule / story / AC / test / plan] | [specific change] | [decision or condition] | [role] | [proposed / pending decision] |
 
-## 待确认事项
+## Items to confirm
 
-| 问题/缺失材料 | 影响哪项结论 | 确认角色或方法 | 更新后的分析范围 |
+| Question / missing material | Conclusion affected | Who or how to confirm | Analysis scope after update |
 |---|---|---|---|
-| [问题] | [变更/对象 ID] | [角色/方法] | [范围] |
+| [question] | [change / object IDs] | [role / method] | [scope] |
 
-此报告是影响分析草稿，不代表外部系统已更新。模板为 EFP 原创扩展；借鉴来源及 MIT 许可范围见上级 skill.md 与 [LICENSE.upstream.txt](LICENSE.upstream.txt)。
+This is an impact analysis draft; no external system was updated.

@@ -1,64 +1,64 @@
-# 产品指标与观测需求草稿
+# Metrics and measurement plan template
 
-实际值和建议值分别标注。没有数据时保留未知，不填示意数值冒充当前值。
+Label actual values and suggested values separately. Without data, keep `Unknown`; never fill in illustrative numbers as current values.
 
-## 决策与指标结构
+## Decision and metric structure
 
-- 用户价值与业务目标：
-- 本次需支持的决策：
-- 使用的原始资料与日期：
-- 结果指标及选择理由：
-- 驱动指标及预期关系（标假设）：
-- 护栏与业务指标：
+- User value and business goal:
+- Decision this plan supports:
+- Source material and dates:
+- Outcome metrics and why they were chosen:
+- Driver metrics and the expected relationship (labelled hypothesis):
+- Guardrail and business metrics:
 
-## 指标字典
+## Metric dictionary
 
-每个 M 编号填写一份；需要时删去明确不适用的字段并说明原因。
+One entry per M ID. Remove a field only when it clearly does not apply, and say why.
 
-| 字段 | 定义 |
+| Field | Definition |
 |---|---|
-| M 编号、名称及类型 | 待填写 |
-| 业务含义、支持的决策 | 待填写 |
-| 分析实体、单位、聚合粒度 | 待填写 |
-| 公式、分子、分母 | 待填写；计数指标写“无分母” |
-| 合格人群与事件条件 | 待填写 |
-| 窗口、时区、起止与 cohort 定义 | 待填写 |
-| 去重键、重复/重试规则 | 待填写 |
-| 排除条件与分群 | 待填写 |
-| 数据来源、字段、可用状态 | 未知 |
-| 更新频率与延迟 | 未知 |
-| 零分母、缺数、迟到/部分窗口处理 | 待填写 |
-| 已有基线、观测期与证据 | 未知 |
-| 目标、期限与依据/建议状态 | 未知 |
-| 关联护栏 M 编号 | 待填写 |
-| 口径负责人、查看人 | 未知 |
+| M ID, name, type | |
+| Business meaning, decision supported | |
+| Analysis entity, unit, grain | |
+| Formula, numerator, denominator | ; count metrics write `no denominator` |
+| Eligible population and event conditions | |
+| Window, time zone, start / end rule, cohort definition | |
+| Deduplication key, repeat / retry rule | |
+| Exclusions and segments | |
+| Data source, fields, availability | Unknown |
+| Refresh frequency and latency | Unknown |
+| Zero denominator, missing data, late / partial window handling | |
+| Existing baseline, observation period, evidence | Unknown |
+| Target, deadline, basis / suggested status | Unknown |
+| Linked guardrail M IDs | |
+| Definition owner, consumers | Unknown |
 
-## 观测映射
+## Instrumentation map
 
-| M 编号 | 来源/事件 | 触发业务语义 | 必要属性/对象 ID | 去重方式 | 存在证据或提案状态 | 待确认人 |
+| M ID | Source / event | Business meaning of the trigger | Required attributes / object IDs | Deduplication | Evidence or proposal status | Who confirms |
 |---|---|---|---|---|---|---|
-| M-01 | 待填写 | 待填写 | 待填写 | 待填写 | 需确认 | 未知 |
+| M-01 | | | | | To verify | Unknown |
 
-## 观测验收场景
+## Instrumentation acceptance scenarios
 
-| 场景 | 输入事件/条件 | 预期分子/分母/计数 | 数据质量状态 | 状态 |
+| Scenario | Input events / conditions | Expected numerator / denominator / count | Data quality state | Status |
 |---|---|---|---|---|
-| 成功/失败/重试等适用场景 | 待填写 | 待填写 | 待填写 | 计划中 |
+| Success / failure / retry and other applicable cases | | | | Planned |
 
-涉及窗口、身份去重或迟到数据时给出边界样例；样例数据需标为合成。
+Give boundary examples for windows, identity deduplication and late data; sample data is labelled synthetic.
 
-## 复查与响应
+## Review and response
 
-| M 编号 | 呈现方式/分群 | 可用频率/复查节奏 | 调查触发条件及依据 | 建议负责人 | 首要检查/后续决定 |
+| M ID | View / segments | Availability and review cadence | Investigation trigger and basis | Suggested owner | First check / follow-up decision |
 |---|---|---|---|---|---|
-| M-01 | 待填写 | 未知 | 未知/建议 | 未知 | 待填写 |
+| M-01 | | Unknown | Unknown / suggested | Unknown | |
 
-产品异常和采集质量异常分列；无阈值依据时记录建立基线的下一步。
+Product anomalies and collection-quality anomalies are listed separately. Without a threshold basis, record the next step to establish a baseline.
 
-## 未决问题
+## Open questions
 
-| 问题 | 影响的 M 编号 | 需要的证据/确认 | 建议负责人 |
+| Question | Affected M IDs | Evidence or confirmation needed | Suggested owner |
 |---|---|---|---|
-| 待填写 | 待填写 | 待填写 | 未知 |
+| | | | Unknown |
 
-交付状态：指标与观测需求草稿；尚未部署埋点、看板或告警。
+Status: metrics and instrumentation draft. No events, dashboards or alerts were deployed.

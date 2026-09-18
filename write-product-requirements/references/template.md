@@ -1,63 +1,65 @@
-# PRD 产物模板
+# PRD template
 
-以下为输出结构，尖括号内容用已有证据、明确建议或“待确认”替换。沿用输入文档已有 ID。
+Replace the angle-bracket prompts with evidence, a labelled suggestion or `To confirm`. Reuse the IDs the input documents already have.
 
-## 文档信息
+## Document information
 
-- 产品 / 本次范围：<名称与版本>
-- 状态：草案 / 待决事项未关闭 / 已确认（必须有确认依据）
-- 用途、读者与材料截止时间：<已知信息>
-- 变更摘要：<新建或本次改动及受影响 ID>
+- Product / scope of this version: <name and version>
+- Status: Draft / Open items pending / Confirmed (only with a confirmation source)
+- Purpose, readers and material cut-off: <known information>
+- Change summary: <new, or the changes in this revision and the affected IDs>
 
-## 目标、用户与现状
+## Objectives, users and current state
 
-<目标用户、实际痛点、现有处理方式、业务目标和为什么现在处理；分别说明事实与推断。>
+<Target users, real pain, how it is handled today, the business goal and why now. Separate facts from inference.>
 
-| 目标 ID | 预期结果 | 证据 / 依据 | 成功指标与观察窗口 | 基线 / 目标 / 数据来源 |
+| Objective ID | Expected outcome | Evidence / basis | Success metric and window | Baseline / target / data source |
 | --- | --- | --- | --- | --- |
-| OBJ-001 | <结果> | SRC-001 或待验证 | <指标定义> | <未知值待确认> |
+| OBJ-001 | <outcome> | SRC-001 or To verify | <metric definition> | <Unknown, To confirm> |
 
-## 范围与业务语境
+## Scope and business context
 
-- 本次包含：<能力和适用角色>
-- 明确排除：<能力及边界>
-- 延期：<关联原需求、理由和重访条件>
-- 关键术语：<统一定义；歧义词需消歧>
-- 关键旅程 / 流程（适用时）：<角色、起点、动作、完成结果、异常恢复>
+- In scope: <capabilities and roles>
+- Explicitly out of scope: <capabilities and boundary>
+- Deferred: <original requirement ID, reason, revisit condition>
+- Key terms: <one definition each; disambiguate>
+- Key journeys / flows (when applicable): <role, entry, actions, completed result, recovery from failure>
 
-## 功能需求与验收
+## Functional requirements and acceptance
 
-### REQ-001：<能力名称>
+Group by business capability. Rows in these tables map to the bundle buckets `functional_requirements`, `business_rules`, `acceptance_criteria` and `edge_cases`; keep the IDs on every row.
 
-- 关联目标 / 旅程：<ID>
-- 状态与依据：<已知决定 / 建议 / 待确认；SRC 或 ASSUMP ID>
-- 行为：<角色>在<条件>下能够<行动>，产生<可观察结果>。
-- 业务规则：<权限、状态转换、限制、例外及边界>
-- 明确不覆盖：<本需求的排除项；没有则写无已知排除>
+### REQ-001: <capability>
 
-| 验收 ID | Given（前置条件） | When（动作） | Then（可观察结果） | 关联需求 |
+- Linked objective / journey: <ID>
+- Status and basis: <decided / suggested / To confirm; SRC or ASSUMP ID>
+- Behaviour: <role> can <action> when <condition>, producing <observable result>.
+- Business rules: <permissions, state transitions, limits, exceptions and boundaries>
+- Explicitly not covered: <exclusions for this requirement, or "none known">
+
+| AC ID | Given | When | Then | Requirement |
 | --- | --- | --- | --- | --- |
-| AC-001 | <条件> | <动作> | <结果或边界> | REQ-001 |
+| AC-001 | <precondition> | <action> | <observable result or boundary> | REQ-001 |
 
-## 非功能要求
+## Non-functional requirements
 
-| ID | 约束与适用范围 | 指标 / 阈值 | 环境 / 负载 / 测量方式 | 来源或假设 | 验收 ID |
+| ID | Constraint and scope | Metric / threshold | Environment / load / measurement | Source or assumption | AC ID |
 | --- | --- | --- | --- | --- | --- |
-| NFR-001 | <性能/可靠性等实际约束> | <未知阈值待确认> | <测量条件> | <SRC/ASSUMP> | <AC ID> |
+| NFR-001 | <performance, reliability, security, ...> | <To confirm> | <measurement conditions> | <SRC / ASSUMP> | <AC ID> |
 
-## 依赖、假设与待决事项
+## Dependencies, assumptions and open items
 
-| ID | 类型 | 内容与依据 | 影响的需求 / AC | 验证或决策方式 | 负责人 / 重访条件 |
+| ID | Type | Content and basis | Affected requirements / AC | Verification or decision | Owner / revisit |
 | --- | --- | --- | --- | --- | --- |
-| ASSUMP-001 | 假设 | <未证实判断> | <ID> | <如何证伪/证实> | <已知人或待指定> |
-| Q-001 | 待决问题 | <需要作出的决定> | <ID> | <所需材料或选择> | <已知人或待指定> |
+| ASSUMP-001 | Assumption | <unverified judgement> | <IDs> | <how to confirm or refute> | <known person or To assign> |
+| Q-001 | Open question | <decision needed> | <IDs> | <material or choice needed> | <known person or To assign> |
 
-## 来源与覆盖检查
+## Sources and coverage check
 
-| 来源 ID | 实际检查的材料 / 版本 | 定位 | 支持的结论或需求 | 局限 / 冲突 |
+| Source ID | Material / version actually checked | Location | Conclusions or requirements supported | Limits / conflicts |
 | --- | --- | --- | --- | --- |
-| SRC-001 | <文件、链接或用户陈述> | <段落或会话内容> | <ID> | <未核验部分> |
+| SRC-001 | <file, link or member statement> | <passage or conversation> | <IDs> | <unverified parts> |
 
-- 缺失输入：<尚未访问的材料和影响；不将其列为已检查来源>
-- 未完成的验收定义：<REQ/NFR ID 和原因>
-- 下游交接重点：<范围边界、依赖和需要首先关闭的问题>
+- Missing inputs: <material not accessed and its effect; never listed as checked>
+- Incomplete acceptance definitions: <REQ / NFR IDs and reason>
+- Hand-off notes: <scope boundaries, dependencies, questions to close first>

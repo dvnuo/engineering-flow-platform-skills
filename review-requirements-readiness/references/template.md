@@ -1,51 +1,51 @@
-# 需求准备度评审模板
+# Readiness review template
 
-只填写已核验内容。沿用来源 ID；来源无 ID 时以文件和章节定位。
+Fill in verified content only. Reuse source IDs; where a source has none, locate by file and section.
 
-## 结论
+## Verdict
 
-- 结论：ready / needs-work / insufficient-evidence
-- 评审目标与范围：<下一阶段、版本、包含与明确排除>
-- 判断依据：<支撑结论的关键事实>
-- 评估限制：<未能评估的内容，不能从局部推断整体>
-- 可推进范围 / 受阻范围：<具体 REQ/ST ID>
+- Verdict: ready / needs-work / insufficient-evidence
+- Review target and scope: <next stage, version, in and explicitly out of scope>
+- Basis: <the key facts behind the verdict>
+- Limits: <what could not be assessed; no whole-scope inference from a partial review>
+- Can proceed / blocked: <specific REQ / ST IDs>
 
-## 输入清单
+## Inputs
 
-| 来源 ID | 文件 / 链接 / 版本 | 实际已读范围 | 权威性依据 | 局限 |
+| Source ID | File / link / version | Range actually read | Authority basis | Limits |
 | --- | --- | --- | --- | --- |
-| SRC-001 | <材料> | <章节> | <已知确认记录或未知> | <限制> |
+| SRC-001 | <material> | <sections> | <confirmation record or Unknown> | <limits> |
 
-缺失或不可访问材料另列，说明它是否包含当前实现必需的决定；不要列为已读来源。
+List missing or unreachable material separately and say whether it holds a decision implementation needs; never list it as read.
 
-## 需求与交付覆盖
+## Requirement and delivery coverage
 
-| 需求 / 规则 ID | 来源 | 故事 ID | AC ID | 覆盖状态 | 仍缺的决定或条件 |
+| Requirement / rule ID | Source | Story IDs | AC IDs | Coverage | Missing decision or condition |
 | --- | --- | --- | --- | --- | --- |
-| REQ-001 | <SRC + 定位> | <ST ID 或无> | <AC ID 或无> | 完整 / 部分 / 未覆盖 / 明确排除 / 无法评估 | <缺口> |
+| REQ-001 | <SRC and location> | <ST IDs or none> | <AC IDs or none> | complete / partial / uncovered / explicitly excluded / cannot assess | <gap> |
 
-- 反查结果：<无来源故事及依据、范围增加>
-- NFR 检查：<阈值、适用范围、负载/测量条件和验证责任是否明确>
-- 依赖检查：<循环依赖、顺序问题、外部阻塞>
-- 统计（若完整清单可核验）：<分母、完整、部分、未覆盖、排除数量>
+- Reverse check: <stories without a source and their basis; scope additions>
+- NFR check: <thresholds, scope, load and measurement conditions, verification owner>
+- Dependency check: <cycles, ordering problems, external blocks>
+- Statistics (only with a verifiable list): <denominator, complete, partial, uncovered, excluded>
 
-## 发现
+## Findings
 
-### FIND-001：<具体问题>
+### FIND-001: <specific issue>
 
-- 严重性：阻塞 / 重要 / 改进
-- 定位：<文件、章节、REQ/ST/AC ID>
-- 已核验证据：<文档实际说了什么>
-- 评审判断：<由证据推导出的问题，或为何无法评估>
-- 影响：<会产生什么实施歧义、遗漏或返工>
-- 修复建议：<可执行的补充或决策动作，不直接改写源文件>
-- 关闭条件：<补充哪些可观察证据可关闭>
-- 负责人 / 期望处理时点：<用户已指定的信息或待指定>
+- Severity: Blocking / Major / Improvement
+- Location: <file, section, REQ / ST / AC IDs>
+- Verified evidence: <what the document actually says>
+- Reviewer judgement: <the issue derived from the evidence, or why it cannot be assessed>
+- Impact: <ambiguity, omission or rework it would cause>
+- Suggested fix: <an actionable addition or decision; the source is not edited here>
+- Closing condition: <observable evidence that closes it>
+- Owner / expected timing: <supplied by the member, or To assign>
 
-## 待决事项与交接
+## Open items and hand-off
 
-| 问题 ID | 需作出的决定 / 获取的证据 | 受影响范围 | 已知负责人 | 关闭后复核项 |
+| Question ID | Decision or evidence needed | Affected scope | Known owner | Re-check after closing |
 | --- | --- | --- | --- | --- |
-| Q-001 | <决定或材料> | <REQ/ST ID> | <已知或待指定> | <FIND ID> |
+| Q-001 | <decision or material> | <REQ / ST IDs> | <known or To assign> | <FIND IDs> |
 
-结尾说明报告是否已保存和下一步需要关闭的事项。分析结论不代表审批、测试结果或已发布工单。
+Close with whether the report was saved and what must be closed next. The verdict is analysis, not approval, test result or a created issue.

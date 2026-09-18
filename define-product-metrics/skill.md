@@ -1,6 +1,6 @@
 ---
 name: define-product-metrics
-description: "Define product success metrics, calculation contracts, instrumentation needs, and guardrails for PMs and BAs. Use when specifying KPIs or a measurement plan, before building dashboards or analyzing experiments."
+description: "Define product success metrics as a reproducible calculation contract (entity, formula, denominator, window, exclusions), with baselines, targets, guardrails and the events needed to measure them. Use when a PM or BA must specify KPIs, a measurement plan or instrumentation needs, before dashboards or experiment analysis are built."
 version: 1.0.0
 owner: engineering-flow-platform
 triggers:
@@ -13,7 +13,6 @@ tools: []
 output_format: markdown
 references:
   - references/template.md
-  - references/LICENSE.upstream.txt
 opencode:
   execution_kind: prompt_only
   compatibility: full
@@ -21,72 +20,85 @@ opencode:
     default: ask
   capability_tags:
     - prompt-only
+    - deliverable
     - product-management
 ---
 
-# 产品指标与观测计划
+# Product metrics and measurement plan
 
-为 PM 和 BA 形成可供数据、研发和运营协作的指标字典与观测需求草稿。重点是何谓成功、怎样计算以及如何据此行动，不直接搭建 dashboard 或执行统计实验。
+Write the metric dictionary and instrumentation needs that product, data, engineering and operations can work from: what success means, how each number is calculated, and what decision changes when it moves. This skill does not build dashboards, run queries or analyse experiments.
 
-## 输入与证据
+## Non-negotiable rules
 
-- 使用已提供的目标用户、产品价值、业务目标、关键流程、现有指标、数据源和约束；有口径文档时优先沿用并指出冲突。
-- 确认要支持的决策，例如发现流失环节、评估某项能力效果或监测用户体验。
-- 未提供真实数据时只产出定义和观测计划；不声称读过数据表、查询过数据或发现趋势。
-- 给已有基线、指标口径和目标注明来源与日期。未知填“未知”，建议阈值明确为待确认建议，不能编造历史值。
-- 本技能不要求连接分析平台、写 SQL、部署埋点、创建告警或修改 bundle。
+1. The deliverable is a Markdown file under `output/` plus a short reply with a download link. Do not paste the whole document into chat.
+2. Every value comes from the member's message, an attached file, or a tool result. Never invent baselines, historical values, trends or query results. Write `Unknown` for missing values and label proposed thresholds `suggested`.
+3. A metric name is not a definition. Every metric gets a formula with numerator, denominator, eligible population and window.
+4. Write the document and the reply in the language the member used. Keep metric IDs and headings stable across revisions.
+5. This skill defines and plans. It does not connect to analytics platforms, deploy events, create alerts or write bundles, and it never claims that it did.
 
-## 1. 选择与目标相称的指标
+## Inputs
 
-从用户获得的价值开始，选择能影响本次决策的少量指标，区分：
+- Attached files land under `uploads/` in the workspace; read them with the read tool before quoting anything.
+- When the member points at a Jira issue, Confluence page or GitHub file, fetch it through bash with the runtime CLIs (`jira`, `confluence`, `gh`), always with `--json`, and read the `ok` / `data` / `error` envelope. Discover commands with `jira commands --json` or `confluence commands --json`. A source you could not fetch is a missing input.
+- Use the target users, product value, business goals, key flows, existing metrics, data sources and constraints supplied. Where a metric glossary already exists, reuse it and point out conflicts.
+- Confirm the decision the metrics must support (find the drop-off, judge a capability, monitor experience).
+- Ask at most one question, and only when it changes which metrics matter. Record every other gap as `Unknown`.
 
-- **结果指标**：要改善的用户/业务结果；适合时提出北极星候选，不能为套用框架强制所有业务共用一个。
-- **驱动指标**：团队可影响、预期与结果有关的行为信号。
-- **护栏指标**：避免优化目标同时损害体验、可靠性、成本或其他相关结果。
-- **业务指标**：观察收入、成本等商业效果，使用与本次目标相关的部分。
+## Workflow
 
-逐项说明“它发生变化时会改变什么决定”。只有活动量而缺少价值解释的指标应补充质量、成功率或分群视角。指标间驱动关系标为假设；相关变化不等于因果证明。
+### 1. Choose metrics that fit the decision
 
-## 2. 写出可复现的计算口径
+Start from the value the user gets and pick the few metrics that influence this decision:
 
-每个指标分配 M 编号，至少定义：
+- **Outcome metrics**: the user or business result to improve. Propose a North Star only when it fits; do not force one.
+- **Driver metrics**: behaviours the team can influence and expects to move the outcome.
+- **Guardrail metrics**: what must not get worse (experience, reliability, cost, another team's outcome).
+- **Business metrics**: revenue, cost or similar, only where relevant to this decision.
 
-- 业务含义、分析实体（用户/账户/任务/订单等）、单位和聚合粒度。
-- 公式、分子、分母、合格人群和事件条件；计数指标明确无分母。
-- 统计窗口、时区、时间起点与截止、自然周期或滚动窗口；留存类注明 cohort 进入条件与回访窗口。
-- 去重键、重复/重试事件规则、排除条件和需比较的分群。
-- 数据来源、已知字段、更新延迟和口径负责人；未知来源/字段保持待确认。
-- 分母为零、事件缺失、迟到数据和部分窗口的处理；缺数不能悄悄写成零。
+For each, state what decision changes when it moves. Activity-only metrics get a quality, success-rate or segment view. Driver-to-outcome links are hypotheses; correlation is not causation.
 
-不能以“转化率”“活跃用户”等名称代替公式。比率聚合应说明按总分子/总分母计算还是其他明确权重，不默认平均各组百分比。口径不同或窗口不完整时标记不可直接比较。
+### 2. Write a reproducible calculation contract
 
-## 3. 明确基线、目标和护栏
+Assign `M-01`, `M-02`, ... and define at least:
 
-分别列实际基线、基线观测期、目标/方向、达标期限以及依据。只有方向没有数值依据时先描述期望改变，给出建立基线的计划。
+- Business meaning, analysis entity (user, account, task, order), unit and grain.
+- Formula, numerator, denominator, eligible population and event conditions. Count metrics say `no denominator`.
+- Window, time zone (Hong Kong, UTC+8, unless the member says otherwise), start and end rule, calendar or rolling period; for retention, the cohort entry condition and return window.
+- Deduplication key, rules for repeated or retried events, exclusions and the segments to compare.
+- Data source, known fields, refresh latency and the owner of the definition; unknown fields stay `To confirm`.
+- Handling of zero denominators, missing events, late data and partial windows. Missing data never becomes zero.
 
-每个主要结果至少检查一个相关护栏；没有适用项时说明理由。护栏定义同样要明确口径、阈值来源、观察窗口与负责人。把产品表现异常和数据质量异常分开，避免把采集失败当作用户行为变化。
+State whether a ratio aggregates as total numerator over total denominator or with explicit weights; do not average group percentages by default. Mark metrics with different definitions or incomplete windows as not comparable.
 
-告警仅形成响应建议：由谁看、什么持续时间/样本条件触发调查、先检查什么、何时停止或回滚相关试验。没有足够基线时不设置伪精确阈值；不把指标告警自动解释成业务因果结论。
+### 3. Baseline, target and guardrails
 
-## 4. 形成观测需求
+List the actual baseline with its observation period, the target or direction, the deadline and the evidence, each separately. With direction only, describe the expected change and the plan to establish a baseline.
 
-把 M 编号映射到所需事件、属性、业务对象 ID、触发时机和计算来源。区分“已存在并有证据”“需验证是否可用”“建议新增”。
+Give every main outcome at least one relevant guardrail or say why none applies, with the same rigour of definition, threshold source, window and owner. Separate product anomalies from data-quality anomalies so a collection failure is not read as user behaviour.
 
-对于新增观测，描述触发一次的业务语义、幂等/去重规则、客户端或服务端来源以及必要字段；仅采集支持本次指标的必要信息。事件名和字段若尚无约定，标为提案。
+Alerts are response suggestions: who looks, what condition and duration trigger an investigation, what to check first, when to stop or roll back a related experiment. Without a baseline, do not set pseudo-precise thresholds, and never turn an alert into a causal conclusion.
 
-提供验收样例：成功、失败/取消、重试、跨窗口、分母为零、事件迟到时预期怎样计数；按实际业务挑选相关情形。不要把验收计划写成已完成测试。
+### 4. Instrumentation needs
 
-## 5. 输出和交接
+Map each M ID to the events, attributes, business object IDs, trigger moment and calculation source it needs. Mark each as `exists (evidence)`, `verify availability` or `proposed`.
 
-使用 [指标定义模板](references/template.md) 交付指标结构、完整字典、观测映射、验收场景、复查节奏和未决问题。小任务可以只保留涉及的指标和章节。
+For new events, describe the business meaning of one trigger, idempotency and deduplication, client or server origin, and the required fields only. Event and field names without an agreed convention are proposals.
 
-建议呈现方式须服务决策：趋势看变化、漏斗看环节、分群看差异。每项给出查看频率和建议负责人；不凭模板假设数据每日可用。
+Provide acceptance examples: how success, failure or cancel, retry, cross-window, zero-denominator and late-data cases should count. These are planned checks, not completed tests.
 
-最终复核不同分析人员是否能用同一输入得出同一数值，数据缺失是否可识别，目标与基线是否分开，护栏是否覆盖主要副作用。交接至研发/数据团队时引用 M 编号和待确认字段，不声称已实现埋点或上线看板。
+### 5. Deliver
 
-## 来源与适配
+1. Read `references/template.md` (relative to this skill's directory) and keep only the sections the task needs; a small task keeps only the metrics involved.
+2. Save the document as `output/metrics-<slug>.md`, where `<slug>` is a short ASCII, lowercase, hyphenated name for the product or initiative. For a revision, write to the same path so the earlier link keeps working.
+3. Recommend how each metric is viewed (trend for change, funnel for stages, segments for differences), how often, and by whom; do not assume daily data.
+4. Before replying, check that two analysts would get the same number from the same input, that missing data is detectable, that targets and baselines are separate, and that guardrails cover the main side effects.
+5. Reply in the member's language with: two or three sentences on the metric set and the decision it supports; the fields or owners still to confirm (at most five); the download link written exactly as a workspace link, for example `[Download metrics-onboarding.md](workspace:output/metrics-onboarding.md)`; and one line saying the file is also in the Server Files panel under `output/`.
 
-方法与结构适配自 Pawel Huryn 的 phuryn/pm-skills，MIT；EFP 增加计算口径、缺数处理、事件契约及观测验收。版权和许可见 [上游 MIT 许可](references/LICENSE.upstream.txt)。固定版本：`8607e3b077817f89bf4a9b623246219734ac3be0`。
+## Hand-offs
 
-- [指标看板定义](https://github.com/phuryn/pm-skills/blob/8607e3b077817f89bf4a9b623246219734ac3be0/pm-product-discovery/skills/metrics-dashboard/SKILL.md)
-- [北极星与驱动指标](https://github.com/phuryn/pm-skills/blob/8607e3b077817f89bf4a9b623246219734ac3be0/pm-marketing-growth/skills/north-star-metric/SKILL.md)
+- Engineering and data teams work from the M IDs and the `To confirm` fields.
+- Test cards in `product-discovery` and outcome entries in `prioritize-roadmap` should cite these definitions.
+
+## Provenance
+
+Method adapted from Pawel Huryn's phuryn/pm-skills (MIT). Pinned sources, licence and the EFP additions are listed in `README.md` next to this file.
