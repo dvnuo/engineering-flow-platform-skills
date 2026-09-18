@@ -1,0 +1,121 @@
+{
+  "brand": "EFP（示例品牌）",
+  "default_style": "formal",
+  "styles": {
+    "formal": {
+      "description": "对外正式：客户、董事会、季度汇报。海军蓝主色，使用企业模板母版，封面与结尾用实景背景。",
+      "theme": {
+        "primary": "0B2545",
+        "accent": "E8590C",
+        "text": "1F2933",
+        "muted": "6B7280",
+        "background": "FFFFFF",
+        "light": "F3F4F6",
+        "font": "Calibri",
+        "title_font": "Calibri",
+        "east_asian_font": "Microsoft YaHei"
+      },
+      "template": "../assets/template/efp-brand-template.pptx",
+      "footer": "EFP · 内部资料",
+      "logo": {
+        "light": "../assets/logo/logo-primary.png",
+        "dark": "../assets/logo/logo-white.png",
+        "position": "top-right",
+        "hero_position": "bottom-right",
+        "width_in": 1.2
+      },
+      "backgrounds": {
+        "title": "../assets/backgrounds/cover-formal.jpg",
+        "section": { "image": "../assets/backgrounds/section-light.jpg", "text": "dark", "overlay": 0 },
+        "closing": "../assets/backgrounds/closing.jpg"
+      },
+      "overlay": 0.45
+    },
+    "review": {
+      "description": "内部复盘：周会、季度 review、项目回顾。品牌蓝主色，不用模板母版，页面留白多，信息密度可以高一些。",
+      "theme": {
+        "primary": "1F6FEB",
+        "accent": "E8590C",
+        "text": "1F2933",
+        "muted": "6B7280",
+        "background": "FFFFFF",
+        "light": "F3F4F6",
+        "hero": "0B2545",
+        "font": "Calibri",
+        "east_asian_font": "Microsoft YaHei"
+      },
+      "footer": "EFP 平台组 · 内部复盘",
+      "logo": {
+        "light": "../assets/logo/logo-primary.png",
+        "dark": "../assets/logo/logo-white.png",
+        "position": "top-right",
+        "hero_position": "bottom-right",
+        "width_in": 1.0
+      },
+      "backgrounds": {
+        "title": "../assets/backgrounds/section-dark.jpg",
+        "closing": "../assets/backgrounds/closing.jpg"
+      },
+      "overlay": 0.4
+    },
+    "keynote": {
+      "description": "发布会与全员大会：深色页面，大字号，每页一个观点。浅蓝标题、橙色强调，封面用发光背景。",
+      "theme": {
+        "primary": "93C5FD",
+        "accent": "FB923C",
+        "text": "E2E8F0",
+        "muted": "94A3B8",
+        "background": "0F172A",
+        "light": "1E293B",
+        "hero": "0F172A",
+        "hero_text": "FFFFFF",
+        "hero_subtext": "CBD5E1",
+        "font": "Calibri",
+        "east_asian_font": "Microsoft YaHei"
+      },
+      "footer": "EFP Launch 2026",
+      "logo": {
+        "light": "../assets/logo/logo-white.png",
+        "dark": "../assets/logo/logo-white.png",
+        "position": "top-right",
+        "hero_position": "bottom-right",
+        "width_in": 1.2
+      },
+      "backgrounds": {
+        "title": { "image": "../assets/backgrounds/cover-keynote.jpg", "overlay": 0.2 },
+        "section": { "image": "../assets/backgrounds/section-dark.jpg", "overlay": 0.3 },
+        "closing": { "image": "../assets/backgrounds/cover-keynote.jpg", "overlay": 0.35 },
+        "quote": { "image": "../assets/backgrounds/section-dark.jpg", "overlay": 0.5 }
+      },
+      "overlay": 0.3
+    },
+    "training": {
+      "description": "培训与操作指南：青绿主色，浅色页面，步骤清晰，多用卡片和截图。封面为浅色背景配深色文字。",
+      "theme": {
+        "primary": "0F766E",
+        "accent": "E8590C",
+        "text": "1F2933",
+        "muted": "6B7280",
+        "background": "FFFFFF",
+        "light": "F0FDFA",
+        "font": "Calibri",
+        "east_asian_font": "Microsoft YaHei"
+      },
+      "template": "../assets/template/efp-brand-template.pptx",
+      "footer": "EFP 培训 · 请勿外传",
+      "logo": {
+        "light": "../assets/logo/logo-primary.png",
+        "dark": "../assets/logo/logo-white.png",
+        "position": "top-right",
+        "hero_position": "top-right",
+        "width_in": 1.1
+      },
+      "backgrounds": {
+        "title": { "image": "../assets/backgrounds/training.jpg", "text": "dark", "overlay": 0 },
+        "section": { "image": "../assets/backgrounds/section-light.jpg", "text": "dark", "overlay": 0 },
+        "closing": "../assets/backgrounds/closing.jpg"
+      },
+      "overlay": 0.45
+    }
+  }
+}

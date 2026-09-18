@@ -2,7 +2,7 @@
 
 Skills for the **Business Assistant** in Engineering Flow Platform (EFP): requirements, planning and analysis work for Product Managers (PM) and Business Analysts (BA). Portal clones this branch into each Business Assistant runtime container at `/app/skills`, and the native agent discovers every `<skill-name>/skill.md` under it.
 
-`master` carries the full skill library. This branch is a curated subset for the native agent: no repository tooling, no `skill.py` executors, no OpenCode metadata. A skill may ship its own scripts that the agent runs through the shell, as `pptx` does. Copy a skill directory from `master` when the role needs it; do not merge `master` into this branch.
+`master` carries the full skill library; this branch holds the skills of the Business Assistant. To add one, copy its directory from `master` and keep only `name` and `description` in the frontmatter. Do not merge `master` into this branch.
 
 ## Skills
 
@@ -17,6 +17,7 @@ Skills for the **Business Assistant** in Engineering Flow Platform (EFP): requir
 | Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md` |
 | Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md` |
 | Build a PowerPoint deck from a request or source material | [pptx](pptx/skill.md) | `output/<slug>.pptx`, built by its `scripts/build_deck.py` (python-pptx is in the runtime image) |
+| Build a deck in the company brand | [pptx-brand](pptx-brand/skill.md) | `output/<slug>.pptx` through `pptx`, with the brand template, styles and assets shipped in this skill |
 | Create Jira issues from a CSV | [jira-bulk-create-from-csv](jira-bulk-create-from-csv/skill.md) | Jira issues, after a mapping table and a dry run |
 | Work a Jira issue assigned through a Portal delegation | [delegation-jira-assignee](delegation-jira-assignee/skill.md) | Status comment body returned to Portal |
 | Answer a Jira mention delivered through a Portal delegation | [delegation-jira-mention](delegation-jira-mention/skill.md) | Status comment body returned to Portal |
@@ -28,7 +29,7 @@ Example: `/write-product-requirements Draft a PRD for invoice approval from the 
 ## How the native agent uses a skill
 
 - Only `name` and `description` from the frontmatter reach the model. A skill is activated by a `/<skill-name>` line, by the agent profile, or by the model choosing it from the description, so the description says what the skill produces and when to use it.
-- The body of an active skill is injected in full. Files next to `skill.md` (for example `references/template.md`) are read on demand with the `read` tool or `skill(name, file=...)`.
+- The body of an active skill is injected in full. Files next to `skill.md` (for example `references/template.md`) are read on demand with the `read` tool or `skill(name, file=...)`. A skill may ship scripts that the agent runs through the shell, as `pptx` does.
 - Deliverables go under `output/` in the workspace, and the reply links them as `[Download x.md](workspace:output/x.md)`; Portal turns that into a download link.
 
 ## Layout

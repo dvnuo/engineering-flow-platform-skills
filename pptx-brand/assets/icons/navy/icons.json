@@ -1,0 +1,214 @@
+{
+  "sheet": "C:\\CCWork\\efp-2\\engineering-flow-platform-skills\\pptx-brand\\assets\\icons\\icon-sheet.png",
+  "size": 256,
+  "icons": [
+    {
+      "index": 1,
+      "row": 1,
+      "col": 1,
+      "name": "target",
+      "file": "target.png",
+      "bbox": [
+        69,
+        69,
+        251,
+        251
+      ]
+    },
+    {
+      "index": 2,
+      "row": 1,
+      "col": 2,
+      "name": "chart-up",
+      "file": "chart-up.png",
+      "bbox": [
+        368,
+        89,
+        532,
+        266
+      ]
+    },
+    {
+      "index": 3,
+      "row": 1,
+      "col": 3,
+      "name": "shield",
+      "file": "shield.png",
+      "bbox": [
+        652,
+        71,
+        820,
+        253
+      ]
+    },
+    {
+      "index": 4,
+      "row": 1,
+      "col": 4,
+      "name": "gear",
+      "file": "gear.png",
+      "bbox": [
+        929,
+        65,
+        1120,
+        256
+      ]
+    },
+    {
+      "index": 5,
+      "row": 2,
+      "col": 1,
+      "name": "users",
+      "file": "users.png",
+      "bbox": [
+        80,
+        373,
+        255,
+        509
+      ]
+    },
+    {
+      "index": 6,
+      "row": 2,
+      "col": 2,
+      "name": "clock",
+      "file": "clock.png",
+      "bbox": [
+        359,
+        359,
+        538,
+        538
+      ]
+    },
+    {
+      "index": 7,
+      "row": 2,
+      "col": 3,
+      "name": "check",
+      "file": "check.png",
+      "bbox": [
+        655,
+        390,
+        821,
+        515
+      ]
+    },
+    {
+      "index": 8,
+      "row": 2,
+      "col": 4,
+      "name": "warning",
+      "file": "warning.png",
+      "bbox": [
+        932,
+        364,
+        1117,
+        528
+      ]
+    },
+    {
+      "index": 9,
+      "row": 3,
+      "col": 1,
+      "name": "cloud",
+      "file": "cloud.png",
+      "bbox": [
+        85,
+        679,
+        253,
+        811
+      ]
+    },
+    {
+      "index": 10,
+      "row": 3,
+      "col": 2,
+      "name": "lock",
+      "file": "lock.png",
+      "bbox": [
+        373,
+        647,
+        524,
+        829
+      ]
+    },
+    {
+      "index": 11,
+      "row": 3,
+      "col": 3,
+      "name": "bolt",
+      "file": "bolt.png",
+      "bbox": [
+        674,
+        638,
+        802,
+        838
+      ]
+    },
+    {
+      "index": 12,
+      "row": 3,
+      "col": 4,
+      "name": "flag",
+      "file": "flag.png",
+      "bbox": [
+        950,
+        647,
+        1103,
+        834
+      ]
+    },
+    {
+      "index": 13,
+      "row": 4,
+      "col": 1,
+      "name": "document",
+      "file": "document.png",
+      "bbox": [
+        98,
+        935,
+        235,
+        1117
+      ]
+    },
+    {
+      "index": 14,
+      "row": 4,
+      "col": 2,
+      "name": "server",
+      "file": "server.png",
+      "bbox": [
+        363,
+        939,
+        533,
+        1117
+      ]
+    },
+    {
+      "index": 15,
+      "row": 4,
+      "col": 3,
+      "name": "globe",
+      "file": "globe.png",
+      "bbox": [
+        647,
+        935,
+        826,
+        1114
+      ]
+    },
+    {
+      "index": 16,
+      "row": 4,
+      "col": 4,
+      "name": "bulb",
+      "file": "bulb.png",
+      "bbox": [
+        958,
+        930,
+        1091,
+        1113
+      ]
+    }
+  ]
+}
