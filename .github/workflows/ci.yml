@@ -42,8 +42,10 @@ jobs:
               if name in names:
                   errors.append(f"{path}: duplicate name {name!r} (also {names[name]})")
               names[name] = path
-              if re.search(r"[\u4e00-\u9fff]", match.group(2)):
-                  errors.append(f"{path}: skill body must be English")
+              # Worked examples may quote a member in their own language.
+              prose = re.split(r"^#+ .*\bExample\b.*$", match.group(2), maxsplit=1, flags=re.M)[0]
+              if re.search(r"[\u4e00-\u9fff]", prose):
+                  errors.append(f"{path}: skill body must be English (worked examples excepted)")
           if not skill_files:
               errors.append("no <skill-name>/skill.md found")
           print("\n".join(errors) if errors else f"OK: {len(skill_files)} skills")
