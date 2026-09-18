@@ -1,32 +1,11 @@
 ---
 name: analyze-requirement-change
 description: "Assess a proposed requirement change against a supplied baseline: the exact differences, the trace to affected rules, stories, acceptance criteria, tests and dependencies, the impact per area, decision options, and the list of artefacts to update once decided. Use when a BA or PM asks for change impact analysis, scope change assessment, or what a requirement change affects."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /analyze-requirement-change
-  - analyze requirement change impact
-  - assess scope change and traceability
-  - 分析需求变更影响
-  - 评估范围变更和需求追踪
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - business-analysis
 ---
 
 # Analyse a requirement change
 
-Compare a change request with the requirement baseline the member supplies and deliver a reviewable impact analysis: what changes, who and what is affected, which options exist, and what must be updated once a decision is made. Inputs can be document fragments, requirement tables, stories, acceptance criteria or bundle content.
+Compare a change request with the requirement baseline the member supplies and deliver a reviewable impact analysis: what changes, who and what is affected, which options exist, and what must be updated once a decision is made. Inputs can be document fragments, requirement tables, stories or acceptance criteria.
 
 ## Non-negotiable rules
 
@@ -34,7 +13,7 @@ Compare a change request with the requirement baseline the member supplies and d
 2. Every difference and impact comes from the member's message, an attached file, or a tool result. Never invent baseline content, affected services, tests, owners, estimates or dates. An area without material is `not assessed`, never "no impact".
 3. Keep "confirmed affected", "suspected", "to verify" and "confirmed unaffected" apart, and keep the recommendation apart from the approval record.
 4. Write the document and the reply in the language the member used. Reuse existing IDs; draft IDs are labelled and are not Jira keys.
-5. This skill analyses. It does not modify bundles, Jira, schedules or remote documents and it sends no notifications, and it never claims that it did.
+5. This skill analyses. It does not modify Jira, schedules or remote documents and it sends no notifications, and it never claims that it did.
 
 ## Inputs
 
@@ -77,7 +56,3 @@ List the requirements, rules, stories, acceptance criteria, tests, documentation
 
 - An accepted change: `write-product-requirements` in revise mode and `break-down-user-stories`, carrying the CHG IDs.
 - Jira updates go through the existing Jira flows after the decision, not through this skill.
-
-## Provenance
-
-EFP-authored BA method. The change-reason categories and the impact walk across PRD, epics and stories follow the BMAD-METHOD correct-course checklist (MIT); structure also draws on the PRD and user-story references in alirezarezvani/claude-skills (MIT). Pinned sources and licences are listed in `README.md` next to this file.

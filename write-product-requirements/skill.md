@@ -1,28 +1,6 @@
 ---
 name: write-product-requirements
 description: "Draft or revise a product requirements document (PRD) with stable requirement IDs, testable acceptance criteria, scope boundaries, assumptions and source traceability. Use when a PM or BA asks to write, update or complete a PRD, a requirements document or acceptance criteria from interviews, business rules or research."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /write-product-requirements
-  - write or update a PRD
-  - draft requirements and acceptance criteria
-  - 编写产品需求文档
-  - 整理业务需求和验收标准
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - product-management
-    - business-analysis
 ---
 
 # Write product requirements
@@ -35,7 +13,7 @@ Turn product context, interviews, business rules and research into a PRD that PM
 2. Every requirement, number and decision comes from the member's message, an attached file, or a tool result. Never invent personas, interviews, thresholds, owners or stakeholder consensus. Write `To confirm` and say who decides.
 3. Keep current facts, decisions already made, assumptions and recommendations visibly separate. A recommendation never becomes a confirmed requirement on its own.
 4. Write the document and the reply in the language the member used. Reuse existing IDs, terms and version labels; on revision keep IDs and never reassign a deleted ID.
-5. This skill drafts documents. It does not write bundles, edit Confluence, create Jira issues or publish anything, and it never claims that it did.
+5. This skill drafts documents. It does not edit Confluence, create Jira issues or publish anything, and it never claims that it did.
 
 ## Inputs
 
@@ -88,10 +66,5 @@ For a review-only request, deliver findings against the same checks and leave th
 
 ## Hand-offs
 
-- **Bundle alignment**: `collect_requirements_to_bundle` writes `requirements.yaml` with the buckets `functional_requirements`, `business_rules`, `acceptance_criteria` and `edge_cases`, plus `quality_flags` (`ambiguities`, `conflicts`, `missing_information`). Keep the PRD's tables in those buckets and tag every row with its REQ or AC ID, so the bundle step can lift them without rewording. `design_test_cases_from_bundle` and `generate_implementation_plan_from_bundle` then work from the bundle.
 - Epics and stories: `break-down-user-stories`, which keeps the REQ and AC IDs.
 - Readiness before implementation: `review-requirements-readiness`.
-
-## Provenance
-
-Method rewritten from the BMAD-METHOD PRD workflow and validation checklist (MIT). Pinned sources, licence, trademark note and the EFP additions are listed in `README.md` next to this file.

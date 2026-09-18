@@ -1,28 +1,6 @@
 ---
 name: review-requirements-readiness
 description: "Review whether requirements and stories are evidenced, consistent and testable enough to implement, and report traceability gaps, conflicting decisions and blockers with a ready / needs-work / insufficient-evidence verdict, without modifying the sources. Use when a PM, BA or team lead asks whether a PRD or story set is ready for development, or wants a quality review of requirements."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /review-requirements-readiness
-  - check implementation readiness
-  - review requirements and story coverage
-  - 检查需求是否具备开发条件
-  - 评审需求质量和故事覆盖
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - business-analysis
-    - product-management
 ---
 
 # Review requirements readiness
@@ -35,7 +13,7 @@ Judge whether the recorded requirements and stories are enough for the team to i
 2. Review only what you actually read: the member's message, attached files and tool results. A document that is referenced but not fetched is `not assessed`, never `verified`. Never invent missing content, approvers, dates or team consensus.
 3. Separate document facts from reviewer inference in every finding, and separate "analysis complete" from "requirements ready".
 4. Write the report and the reply in the language the member used. Cite REQ, ST and AC IDs from the sources.
-5. This skill reviews. It does not edit the PRD or stories, write bundles, create Jira issues or update sprint tracking, and it never claims that it did.
+5. This skill reviews. It does not edit the PRD or stories, create Jira issues or update sprint tracking, and it never claims that it did.
 
 ## Inputs
 
@@ -86,8 +64,3 @@ Known defects plus missing material give `needs-work` with the unassessable part
 
 - `needs-work` on requirements: `write-product-requirements` in revise mode, citing the FIND IDs.
 - `needs-work` on stories or coverage: `break-down-user-stories`.
-- `ready` with a bundle in place: `generate_implementation_plan_from_bundle` and `design_test_cases_from_bundle` continue from the bundle.
-
-## Provenance
-
-Method rewritten from the BMAD-METHOD readiness gate and PRD validation checklist (MIT). Pinned sources, licence, trademark note and the EFP additions are listed in `README.md` next to this file.

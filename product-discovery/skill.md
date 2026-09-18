@@ -1,27 +1,6 @@
 ---
 name: product-discovery
 description: "Turn interviews, feedback and data summaries into an evidence log, opportunity and solution comparison, and assumption tests, or a research plan when no evidence exists yet. Use when a PM or BA asks for product discovery, interview planning, research synthesis, or wants a problem validated before a build decision."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /product-discovery
-  - plan product discovery
-  - synthesize customer research into opportunities
-  - 产品发现与问题验证
-  - 根据访谈梳理用户机会和实验
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - product-management
 ---
 
 # Product discovery and validation plan
@@ -34,7 +13,7 @@ Turn what the member already has (interview notes, feedback, support tickets, us
 2. Every fact comes from the member's message, an attached file, or a tool result. Never invent quotes, interview results, numbers, dates, names or validated conclusions. Write `Unknown` or `To confirm` and say who can confirm.
 3. Keep observed facts, interpretations, assumptions and recommendations visibly separate. A recommendation never turns into an approved decision on its own.
 4. Write the document and the reply in the language the member used. Keep IDs and section headings stable across revisions.
-5. This skill analyses and plans. It does not run experiments, contact respondents, write bundles or create Jira issues, and it never claims that it did.
+5. This skill analyses and plans. It does not run experiments, contact respondents or create Jira issues, and it never claims that it did.
 
 ## Inputs
 
@@ -99,7 +78,3 @@ Interviews, prototype tasks and technical spikes test different risks. An A/B de
 - Requirements for a chosen solution: `write-product-requirements`, carrying the O/S/A IDs and the open questions.
 - Several opportunities competing for the same window: `prioritize-roadmap`.
 - Defining the outcome metric properly: `define-product-metrics`.
-
-## Provenance
-
-Method adapted from Pawel Huryn's phuryn/pm-skills (MIT). Pinned sources, licence and the EFP additions are listed in `README.md` next to this file.

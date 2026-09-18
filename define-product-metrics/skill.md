@@ -1,27 +1,6 @@
 ---
 name: define-product-metrics
 description: "Define product success metrics as a reproducible calculation contract (entity, formula, denominator, window, exclusions), with baselines, targets, guardrails and the events needed to measure them. Use when a PM or BA must specify KPIs, a measurement plan or instrumentation needs, before dashboards or experiment analysis are built."
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - /define-product-metrics
-  - define product success metrics
-  - specify KPI definitions and guardrails
-  - 定义产品指标口径与埋点需求
-  - 制定产品效果衡量方案
-tools: []
-output_format: markdown
-references:
-  - references/template.md
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - deliverable
-    - product-management
 ---
 
 # Product metrics and measurement plan
@@ -34,7 +13,7 @@ Write the metric dictionary and instrumentation needs that product, data, engine
 2. Every value comes from the member's message, an attached file, or a tool result. Never invent baselines, historical values, trends or query results. Write `Unknown` for missing values and label proposed thresholds `suggested`.
 3. A metric name is not a definition. Every metric gets a formula with numerator, denominator, eligible population and window.
 4. Write the document and the reply in the language the member used. Keep metric IDs and headings stable across revisions.
-5. This skill defines and plans. It does not connect to analytics platforms, deploy events, create alerts or write bundles, and it never claims that it did.
+5. This skill defines and plans. It does not connect to analytics platforms, deploy events or create alerts, and it never claims that it did.
 
 ## Inputs
 
@@ -98,7 +77,3 @@ Provide acceptance examples: how success, failure or cancel, retry, cross-window
 
 - Engineering and data teams work from the M IDs and the `To confirm` fields.
 - Test cards in `product-discovery` and outcome entries in `prioritize-roadmap` should cite these definitions.
-
-## Provenance
-
-Method adapted from Pawel Huryn's phuryn/pm-skills (MIT). Pinned sources, licence and the EFP additions are listed in `README.md` next to this file.

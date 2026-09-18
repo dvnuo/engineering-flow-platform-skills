@@ -1,25 +1,6 @@
 ---
 name: delegation-jira-mention
 description: Handle long-running Jira mention delegations and return a Portal-owned Jira status comment body with a final answer or result.
-version: 1.0.0
-owner: engineering-flow-platform
-triggers:
-  - jira_mention
-  - delegation jira mention
-  - jira mention delegation
-  - mentioned in Jira issue delegation
-output_format: json
-opencode:
-  execution_kind: prompt_only
-  compatibility: full
-  permission:
-    default: ask
-  capability_tags:
-    - prompt-only
-    - delegation
-    - jira
-    - mention
-    - long-running
 ---
 
 # Delegation Jira Mention

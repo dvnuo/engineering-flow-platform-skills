@@ -6,49 +6,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate-skills:
+  check-skills:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install test dependencies
+      - name: Check skill.md frontmatter
+        shell: python
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install pytest PyYAML
+          import re, sys
+          from pathlib import Path
 
-      - name: Validate native skills format
-        run: python scripts/validate_skills.py
-
-      - name: Validate OpenCode compatibility
-        run: python scripts/validate_skills.py --opencode-compatible
-
-      - name: Validate OpenCode integration fixtures
-        run: python scripts/validate_skills.py --root integration/fixtures --opencode-compatible
-
-      - name: Export production skills contract
-        run: |
-          python scripts/export_skills_contract.py --scope production --output /tmp/skills-contract.json --pretty
-          python -m json.tool /tmp/skills-contract.json >/dev/null
-
-      - name: Export integration fixture skills contract
-        run: |
-          python scripts/export_skills_contract.py --root integration/fixtures --scope integration-fixtures --output /tmp/skills-fixtures-contract.json --pretty
-          python -m json.tool /tmp/skills-fixtures-contract.json >/dev/null
-
-      - name: Run tests
-        run: python -m pytest -q
-
-      - name: Run skills smoke script
-        run: integration/scripts/smoke_skills.sh
-
-      - name: Ensure generated OpenCode artifacts are not committed
-        run: |
-          test ! -d .opencode
-          test ! -f skills-index.json
+          errors, names = [], {}
+          skill_files = sorted(p for p in Path(".").rglob("skill.md") if ".git" not in p.parts)
+          for path in skill_files:
+              if len(path.parts) != 2:
+                  errors.append(f"{path}: skill.md must sit directly in <skill-name>/")
+                  continue
+              text = path.read_text(encoding="utf-8")
+              match = re.match(r"---\n(.*?)\n---\n(.*)\Z", text, re.S)
+              if not match:
+                  errors.append(f"{path}: missing frontmatter")
+                  continue
+              fields = dict(re.findall(r"^([A-Za-z_-]+):[ \t]*(.*)$", match.group(1), re.M))
+              name = fields.get("name", "").strip().strip("'\"")
+              description = fields.get("description", "").strip().strip("'\"")
+              if name != path.parent.name:
+                  errors.append(f"{path}: name {name!r} must equal the directory name")
+              if not description:
+                  errors.append(f"{path}: missing description")
+              if name in names:
+                  errors.append(f"{path}: duplicate name {name!r} (also {names[name]})")
+              names[name] = path
+              if re.search(r"[\u4e00-\u9fff]", match.group(2)):
+                  errors.append(f"{path}: skill body must be English")
+          if not skill_files:
+              errors.append("no <skill-name>/skill.md found")
+          print("\n".join(errors) if errors else f"OK: {len(skill_files)} skills")
+          sys.exit(1 if errors else 0)

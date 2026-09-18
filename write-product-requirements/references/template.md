@@ -27,7 +27,7 @@ Replace the angle-bracket prompts with evidence, a labelled suggestion or `To co
 
 ## Functional requirements and acceptance
 
-Group by business capability. Rows in these tables map to the bundle buckets `functional_requirements`, `business_rules`, `acceptance_criteria` and `edge_cases`; keep the IDs on every row.
+Group by business capability and keep the IDs on every row.
 
 ### REQ-001: <capability>
 
