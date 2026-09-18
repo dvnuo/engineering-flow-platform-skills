@@ -1,60 +1,64 @@
-# Epic 与故事产物模板
+# Epics and stories template
 
-按已有 ID 约定替换下面示意 ID。模板字段用实际信息或“待确认”填写，不新增假定的项目事实。
+Replace the example IDs with the source document's IDs. Fill fields with actual information or `To confirm`; do not add assumed project facts.
 
-## 拆分范围
+## Scope of this breakdown
 
-- 产品 / 版本 / 本轮目标：<范围>
-- 已检查输入：<来源 ID、文件/链接、版本与定位>
-- 缺失材料与影响：<没有检查的材料>
-- 关键决定 / 假设：<分别列出及其依据>
-- 本轮明确排除：<原需求 ID、理由与决定来源>
+- Product / version / goal of this round: <scope>
+- Inputs checked: <source IDs, files or links, versions and locations>
+- Missing material and its effect: <material not checked>
+- Key decisions / assumptions: <listed separately with their basis>
+- Explicitly excluded this round: <original requirement ID, reason, decision source>
 
-## 需求清单
+## Requirement list
 
-| 需求 ID | 类型 | 要求及约束 | 来源定位 | 状态 |
+| Requirement ID | Type | Requirement and constraints | Source location | Status |
 | --- | --- | --- | --- | --- |
-| REQ-001 | 功能 / 业务规则 | <实际需求> | <SRC ID 与段落> | <已确认 / 待确认> |
-| NFR-001 | 非功能 | <阈值与测量条件或待确认> | <来源> | <状态> |
+| REQ-001 | Functional / business rule | <actual requirement> | <SRC ID and passage> | <confirmed / To confirm> |
+| NFR-001 | Non-functional | <threshold and measurement or To confirm> | <source> | <status> |
 
-## Epic 清单
+## Epics
 
-| Epic ID | 用户或业务结果 | 需求 ID | 依赖与范围边界 |
+| Epic ID | User or business outcome | Requirement IDs | Dependencies and scope boundary |
 | --- | --- | --- | --- |
-| EPIC-001 | <完成后可以做什么> | <REQ/NFR/UX ID> | <前置能力及排除项> |
+| EPIC-001 | <what becomes possible when done> | <REQ / NFR / UX IDs> | <prerequisite capabilities and exclusions> |
 
-## 按依赖排序的故事
+## Stories in dependency order
 
-### ST-001：<行为与结果>
+### ST-001: <behaviour and result>
 
-- Epic / 类型：<EPIC ID；用户故事或技术使能任务>
-- 角色、目标与价值：作为<角色>，我希望<能力>，以便<结果>。
-- 来源与约束：<需求 ID；无直接来源则注明假设及确认状态>
-- 本故事包含：<边界>
-- 本故事不包含：<排除及衔接>
-- 前置依赖：<已存在能力 / 较早故事 / 外部依赖及可用状态>
-- 阻塞事项：<没有则写未发现；材料不全不能写已排除所有阻塞>
-- 大小判断：<是否需进一步拆分及理由，不默认编造人日/点数>
+- Epic / type: <EPIC ID; user story or enabler task>
+- Role, goal, value: As a <role>, I want <capability>, so that <outcome>.
+- Sources and constraints: <requirement IDs; without a direct source, the assumption and its status>
+- In this story: <boundary>
+- Not in this story: <exclusions and seams>
+- Prerequisites: <existing capability / earlier story / external dependency and its availability>
+- Blockers: <"none found", or the block; incomplete material never means "all blockers cleared">
+- Size judgement: <whether a further split is needed and why; no invented days or points>
 
-| AC ID | Given | When | Then | 对应需求 / 规则 |
+| AC ID | Given | When | Then | Requirement / rule |
 | --- | --- | --- | --- | --- |
-| AC-001 | <前提> | <动作> | <可观察结果> | <REQ/NFR/UX ID> |
+| AC-001 | <precondition> | <action> | <observable result> | <REQ / NFR / UX ID> |
 
-## 双向覆盖表
+## Two-way coverage matrix
 
-| 需求 ID | Epic / 故事 ID | AC ID | 覆盖状态 | 未覆盖部分 / 排除理由 |
+| Requirement ID | Epic / story IDs | AC IDs | Coverage | Uncovered part / exclusion reason |
 | --- | --- | --- | --- | --- |
-| REQ-001 | <ID；未覆盖则无> | <AC> | 完整 / 部分 / 未覆盖 / 明确排除 | <具体约束或理由> |
+| REQ-001 | <IDs, or none> | <AC IDs> | complete / partial / uncovered / explicitly excluded | <constraint or reason> |
 
-只有全部要求有对应 AC 才标完整。提供故事反查来源结果，单独列出无上游依据的新增范围。
+Mark `complete` only when every constraint has an AC. Add the reverse check (story -> source) and list scope additions without an upstream source separately.
 
-## 未覆盖、依赖和待决事项
+## Gaps, dependencies and open items
 
-| 问题 ID | 需求 / 故事定位 | 缺口或冲突 | 交付影响 | 下一步 | 负责人 / 关闭条件 |
+| Issue ID | Requirement / story | Gap or conflict | Delivery impact | Next step | Owner / closing condition |
 | --- | --- | --- | --- | --- | --- |
-| GAP-001 | <ID> | <具体问题> | <是否阻塞> | <可执行动作> | <已知值或待指定> |
+| GAP-001 | <ID> | <specific issue> | <blocking or not> | <actionable step> | <known value or To assign> |
 
-- 依赖检查：<循环、向后置故事依赖、外部不可用依赖及处理建议>
-- 覆盖统计（仅清单完整时）：<总数、完整、部分、未覆盖、排除；分母说明>
-- 修订摘要（如适用）：<变更 ID、范围和依赖影响>
-- 交接结论：<哪些可以细化/实施，哪些需要先补充证据或决定>
+- Dependency check: <cycles, dependencies on later stories, unavailable external dependencies and suggested handling>
+- Coverage statistics (only with a complete list): <total, complete, partial, uncovered, excluded; denominator stated>
+- Revision summary (if applicable): <changed IDs, scope and dependency effects>
+- Hand-off conclusion: <what can be refined or implemented, what needs evidence or a decision first>
+
+## CSV companion
+
+`output/stories-<slug>.csv`, one row per story: `Story ID, Epic, Summary, Issue Type, Description, Acceptance Criteria, Requirement IDs, Depends On, Priority, Labels`. Multi-line acceptance criteria are quoted; `Priority` and `Labels` stay empty unless supplied.

@@ -1,63 +1,63 @@
-# 业务流程分析草稿模板
+# Business process analysis template
 
-按任务删减；方括号为填写提示，未知写“待确认”并给出确认对象或方法。以下 ID 是格式示例，不是已经存在的需求或事实。
+Trim to the task. Square brackets are prompts; write `To confirm` for unknowns and say who or what can confirm. The IDs below are format examples, not existing requirements or facts.
 
-## 范围与证据
+## Scope and evidence
 
-- 业务目标：[期望业务结果]
-- 起点/终点：[触发事件] → [完成条件]
-- 范围及排除项：[角色、系统、业务场景]
-- 状态：[草稿 / 待业务确认]；分析基准：[材料版本/日期]
+- Business goal: [expected business outcome]
+- Start / end: [trigger event] -> [completion condition]
+- Scope and exclusions: [roles, systems, business scenarios]
+- Status: [draft / pending business confirmation]; analysis baseline: [material version or date]
 
-| 来源 ID | 材料与定位 | 日期/版本 | 事实类型 | 限制或冲突 |
+| Source ID | Material and location | Date / version | Type of fact | Limits or conflicts |
 |---|---|---|---|---|
-| SRC-01 | [访谈段落/文档章节] | [已知值或未知] | [实际做法/书面规定/建议] | [限制] |
+| SRC-01 | [interview passage / document section] | [known value or Unknown] | [actual practice / written rule / suggestion] | [limits] |
 
-## 现状流程与角色
+## As-is process and roles
 
-| 步骤 ID | 触发/输入 | 执行者 | 动作/判断 | 决策者 | 输出及接收者/下一步 | 来源 | 问题 |
+| Step ID | Trigger / input | Actor | Action / decision | Decider | Output, receiver, next step | Source | Issue |
 |---|---|---|---|---|---|---|---|
-| AS-01 | [输入] | [角色] | [动作] | [角色或不适用] | [结果及下一步] | SRC-01 | [观察/推断] |
+| AS-01 | [input] | [role] | [action] | [role or n/a] | [result and next step] | SRC-01 | [observation / inference] |
 
-## 业务规则与决策表
+Working versus waiting time (only when durations or timestamps were supplied): [per-stage working time, waiting time, largest wait].
 
-| 规则 ID | 适用场景 | 条件和边界 | 结果/下一步 | 来源 | 状态 |
+## Business rules and decision table
+
+| Rule ID | Scenario | Conditions and bounds | Outcome / next step | Source | Status |
 |---|---|---|---|---|---|
-| BR-01 | [场景] | [条件] | [结果] | SRC-01 | [已确认/待确认/提案] |
+| BR-01 | [scenario] | [conditions] | [outcome] | SRC-01 | [confirmed / To confirm / proposal] |
 
-| 决策行 | 条件 A | 条件 B | 动作/结果 | 关联规则 |
+| Row | Condition A | Condition B | Action / outcome | Linked rule |
 |---|---|---|---|---|
-| D-01 | [明确取值范围] | [是/否/未知/不适用] | [结果或待决] | BR-01 |
+| D-01 | [explicit value range] | [yes / no / unknown / n/a] | [outcome or undecided] | BR-01 |
 
-- 命中策略：[唯一命中/有依据的优先级/待确认]
-- 无命中处理：[结果/待确认]
-- 缺失输入处理：[补齐/转人工等有依据的行为，或待确认]
-- 边界与冲突：[重叠、缺口、阈值口径及确认人]
+- Match policy: [single match / evidenced precedence / To confirm]
+- No-match handling: [outcome / To confirm]
+- Missing-input handling: [evidenced behaviour such as request the value or route to a person, or To confirm]
+- Boundaries and conflicts: [overlaps, gaps, threshold definitions, who confirms]
 
-## 异常与恢复
+## Exceptions and recovery
 
-| 异常 ID | 涉及步骤/规则 | 触发 | 业务状态/用户结果 | 恢复或升级 | 负责角色 | 来源/待验证点 |
+| Exception ID | Steps / rules involved | Trigger | Business state / user result | Recovery or escalation | Responsible role | Source / to verify |
 |---|---|---|---|---|---|---|
-| EX-01 | AS-01 / BR-01 | [触发] | [结果] | [路径] | [角色] | [依据] |
+| EX-01 | AS-01 / BR-01 | [trigger] | [result] | [path] | [role] | [basis] |
 
-## 目标流程与差异
+## To-be process and differences
 
-| 目标步骤 | 现状步骤 | 变化类型 | 拟议动作/交接 | 解决的问题 | 规则变化 | 依赖与假设 |
+| To-be step | As-is step | Change type | Proposed action / hand-off | Problem addressed | Rule change | Dependencies and assumptions |
 |---|---|---|---|---|---|---|
-| TO-01 | AS-01 | [保留/替代/合并/新增] | [动作] | [问题及来源] | [规则 ID] | [依赖] |
+| TO-01 | AS-01 | [keep / replace / merge / add] | [action] | [problem and source] | [rule ID] | [dependencies] |
 
-| 衡量项 | 定义/统计窗口 | 基线及来源 | 目标及依据 | 负责角色 |
+| Measure | Definition / window | Baseline and source | Target and basis | Responsible role |
 |---|---|---|---|---|
-| [业务结果] | [口径] | [值或未知] | [值或待协商] | [角色或待确认] |
+| [business outcome] | [definition] | [value or Unknown] | [value or to negotiate] | [role or To confirm] |
 
-## 需求交接与待决事项
+## Requirement hand-off and open items
 
-| 目标步骤/规则 | 现有或候选需求 ID | 验收意图 | 依赖 | 状态 |
+| To-be step / rule | Existing or candidate requirement ID | Acceptance intent | Dependencies | Status |
 |---|---|---|---|---|
-| TO-01 / BR-01 | [REQ-ID 或候选] | [正常/边界/异常可观察行为] | [依赖] | [草稿] |
+| TO-01 / BR-01 | [REQ ID or candidate] | [observable normal / boundary / exception behaviour] | [dependencies] | [draft] |
 
-| 待决问题 | 为什么影响结论 | 已有证据/冲突 | 确认角色或方法 | 决策后需更新的对象 |
+| Open question | Why it affects the conclusion | Evidence / conflict | Who or how to confirm | Objects to update after the decision |
 |---|---|---|---|---|
-| [问题] | [影响] | [来源] | [角色/方法] | [步骤/规则/需求 ID] |
-
-此模板为 EFP 原创扩展；借鉴来源及 MIT 许可范围见上级 skill.md 与 [LICENSE.upstream.txt](LICENSE.upstream.txt)。
+| [question] | [effect] | [source] | [role / method] | [step / rule / requirement IDs] |

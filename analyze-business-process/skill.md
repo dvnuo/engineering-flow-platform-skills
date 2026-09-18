@@ -1,19 +1,18 @@
 ---
 name: analyze-business-process
-description: Model current and proposed business processes, roles, decision rules, and exceptions from supplied evidence for BA review.
+description: "Model the current (as-is) and proposed (to-be) business process from supplied evidence: steps with actors and hand-offs, business rules as decision tables, exceptions and recovery paths, gaps, and the hand-off to requirements. Use when a BA or PM asks to map or document a business process, clarify business rules and approval logic, or compare the current process with a proposed one."
 version: 1.0.0
 owner: engineering-flow-platform
 triggers:
   - /analyze-business-process
-  - 梳理业务流程和业务规则
-  - 分析现状流程与目标流程
   - analyze business process and decision rules
   - map as-is and to-be process
+  - 梳理业务流程和业务规则
+  - 分析现状流程与目标流程
 tools: []
 output_format: markdown
 references:
   - references/template.md
-  - references/LICENSE.upstream.txt
 opencode:
   execution_kind: prompt_only
   compatibility: full
@@ -21,72 +20,69 @@ opencode:
     default: ask
   capability_tags:
     - prompt-only
+    - deliverable
     - business-analysis
 ---
 
-# 业务流程与规则分析
+# Analyse a business process
 
-将访谈、操作说明、需求片段或已有 bundle 内容整理为可审阅的 BA 草稿，连接现状流程、目标流程、业务规则及异常处理。
-本技能仅依赖提供的内容；流程表和决策表足以表达结果，无需外部绘图工具。
+Turn interviews, operating instructions, requirement fragments or bundle content into a reviewable BA document that connects the current process, the proposed process, the business rules and the exception handling. Tables are enough to express the result; no diagramming tool is needed. Add a Mermaid flowchart only when the member asks for a diagram.
 
-## 输入与范围
+## Non-negotiable rules
 
-- 优先识别业务目标、流程起止事件、涉及角色/系统、当前问题和拟议改变。
-- 记录材料名称、版本/日期和可定位章节；无链接的用户说明使用 `SRC-01` 等本次引用编号。
-- 若范围不完整，列出采用的工作边界并继续分析已知部分；只对影响正确性的关键缺口提问。
-- 用户只要求现状时，产出现状及问题；目标方案不自动成为实施承诺。
+1. The deliverable is a Markdown file under `output/` plus a short reply with a download link. Do not paste the whole document into chat.
+2. Every step, rule, threshold and owner comes from the member's message, an attached file, or a tool result. Never invent durations, savings, approval authority or policy references. Write `To confirm` and name who can confirm.
+3. Keep actual practice, written rules and interviewee suggestions apart, and keep the to-be process apart from current facts. A proposed rule is a proposal until the member says it is approved.
+4. Write the document and the reply in the language the member used. Reuse step, rule and requirement IDs from the sources.
+5. This skill analyses. It does not write bundles, create Jira issues or change any business configuration, and it never claims that it did.
 
-## 分析步骤
+## Inputs
 
-### 1. 建立现状（as-is）
+- Attached files land under `uploads/` in the workspace; read them with the read tool before quoting anything.
+- When the member points at a Jira issue, Confluence page or GitHub file, fetch it through bash with the runtime CLIs (`jira`, `confluence`, `gh`), always with `--json`, and read the `ok` / `data` / `error` envelope. Discover commands with `jira commands --json` or `confluence commands --json`. A source you could not fetch is a missing input.
+- Identify the business goal, the start and end events, the roles and systems involved, the current problems and the proposed change. Give unlinked member statements `SRC-01` style IDs.
+- With incomplete scope, state the working boundary and analyse what is known; ask only about a gap that affects correctness.
+- When the member asks for the current process only, deliver as-is and problems; a proposed process is never an implementation commitment.
 
-按触发、角色动作、输入、判断、输出及交接列出步骤；保留已有 ID，否则分配本次草稿的 `AS-01` 等 ID。
-每步区分负责执行者、决策者与接收者；未知人员写“待确认”，不按职位名称猜测审批权限。
-将“实际做法”“书面规定”“受访者建议”分开，冲突材料并列注明来源及待确认人。
-标记等待、返工、重复录入、职责空档和系统边界；没有测量数据时描述问题，不虚构耗时或节省比例。
+## Workflow
 
-### 2. 显式化业务规则
+### 1. Establish the as-is
 
-给每项规则稳定的 `BR-01` 等 ID，写明适用范围、条件、结果、依据及状态。
-涉及多个条件时使用决策表；为条件定义口径，包括单位、币种、时区和包含边界（仅在相关时）。
-逐行检查条件重叠与缺口：多条命中时的优先级、无命中时的处理都应明确或列为待决。
-区分“否”“未知”“不适用”；输入缺失不能默认为不满足条件。
-业务阈值、职责和政策依据必须来自材料；建议的新规则明确标为提案，不当成已批准规则。
+List steps as `AS-01`, `AS-02`, ... (or the member's IDs) with trigger, input, actor, action or decision, decider, output and receiver. Unknown people are `To confirm`; do not infer approval rights from a job title.
 
-### 3. 覆盖异常与恢复
+Mark waits, rework, re-keying, ownership gaps and system boundaries. Without measurements, describe the problem; do not invent times or savings. When the member supplies stage durations or timestamps, separate working time from waiting time per stage and name the single largest wait; otherwise skip this.
 
-沿各交接点检查退回、取消、重复提交、超时、系统失败及越权等与本流程相关的情形。
-每个异常记录触发、受影响状态、负责角色、用户可见结果及恢复/升级路径。
-将“异常被忽略”“系统自动补偿”等无证据行为列为待确认，不补写为现状。
-只为与业务目标有关的例外建模，不把所有可能故障强加给简单流程。
+### 2. Make business rules explicit
 
-### 4. 形成目标流程（to-be）
+Give each rule a stable `BR-01` ID with scope, condition, outcome, basis and status (`confirmed`, `To confirm`, `proposal`). Use a decision table when several conditions interact, and define the conditions precisely: unit, currency, time zone, and whether bounds are inclusive.
 
-围绕已确认痛点提出目标步骤，使用 `TO-01` 等 ID，并映射被保留、合并、替代或新增的现状步骤。
-每项变化解释业务价值、影响角色、规则变化、系统/数据依赖及仍需验证的假设。
-比较目标方案与保持现状的选项；只有用户要求或权衡需要时才展开多个方案。
-把端到端成功定义成可观察结果；指标的基线、目标和时间窗口未知时分别注明。
+Check every row for overlaps and gaps: when several rules match, which one wins; when none matches, what happens. Distinguish `no`, `unknown` and `not applicable`; a missing input does not mean the condition failed. Thresholds, responsibilities and policy references must come from the material.
 
-### 5. 交接需求
+### 3. Cover exceptions and recovery
 
-为拟转入需求的流程/规则变化建立映射：`步骤 → BR → REQ → 验收场景`。
-保留已有需求 ID；新需求使用明确标注的候选 ID，未编写的验收场景标为待补充。
-提供涉及正常、边界和异常行为的验收意图，供后续 PRD、用户故事或测试设计使用。
-将事实、推断、方案和待决问题分列，避免把目标流程混进当前业务事实。
+At each hand-off, check returns, cancellations, duplicate submissions, timeouts, system failure and unauthorised actions where they matter for this process. Record trigger, affected state, responsible role, what the user sees, and the recovery or escalation path (`EX-01`, ...). Behaviour with no evidence, such as "exceptions are ignored" or "the system compensates automatically", is `To confirm`, not current practice. Model only the exceptions that matter for the business goal.
 
-## 输出与复核
+### 4. Form the to-be
 
-需要完整报告时使用 [references/template.md](references/template.md)；简单问题仅保留相关表格。
-默认输出 Markdown 草稿，包含范围/来源、现状、规则、异常、目标变化和待决事项。
-复核起止是否闭合、交接是否有接收者、规则是否可判定、目标变化是否能追到问题来源。
-现状缺证据的部分明确标为“未验证”；不把“未发现问题”写成“流程无风险”。
-完成标准是证据支持的可审阅分析及缺口清单；不以补齐未知信息为由停止其余工作。
-本技能不自动写入 bundle、创建 Jira 事项或更改业务配置，也不宣称完成了这些操作。
+Propose target steps `TO-01`, ... around the confirmed pain points, mapping each to the as-is steps it keeps, merges, replaces or adds. Explain the business value, affected roles, rule changes, system and data dependencies, and the assumptions still to verify. Compare the proposal with keeping the status quo; expand several options only when the member asks or the trade-off requires it. Define end-to-end success as an observable outcome; baseline, target and window stay `Unknown` until supplied.
 
-## 来源与 EFP 扩展
+### 5. Hand off to requirements
 
-本技能为 EFP 原创 BA 扩展，上游并无同名业务分析技能；借鉴用户旅程的范围/步骤/痛点以及需求边界与风险组织方式。
-as-is/to-be 映射、职责区分、业务决策表、异常恢复及需求追踪是本次独立编写的 EFP 方法，未声称由上游提供。
-参考版本：`19392f7a08264ed00486a251f5b2098321771f94`；MIT 完整许可见 [LICENSE.upstream.txt](references/LICENSE.upstream.txt)。
-- [UX Researcher & Designer：journey mapping](https://github.com/alirezarezvani/claude-skills/blob/19392f7a08264ed00486a251f5b2098321771f94/product-team/skills/ux-researcher-designer/SKILL.md)
-- [Product Manager Toolkit：PRD templates](https://github.com/alirezarezvani/claude-skills/blob/19392f7a08264ed00486a251f5b2098321771f94/product-team/skills/product-manager-toolkit/references/prd_templates.md)
+Map every process or rule change that should become a requirement as `step -> BR -> REQ -> acceptance intent`. Keep existing REQ IDs; mark new ones as candidates. Give acceptance intents for normal, boundary and exception behaviour so the PRD, the stories or the test design can pick them up.
+
+### 6. Deliver
+
+1. Read `references/template.md` (relative to this skill's directory); a simple question keeps only the relevant tables.
+2. Check that start and end close, every hand-off has a receiver, every rule is decidable, and every to-be change traces to a problem. Parts without evidence are labelled `unverified`; "no issue found" is not "no risk".
+3. Save the document as `output/process-<slug>.md`, where `<slug>` is a short ASCII, lowercase, hyphenated name for the process. For a revision, write to the same path so the earlier link keeps working.
+4. Reply in the member's language with: two or three sentences on the process and the main gaps; the rules or hand-offs still to confirm (at most five); the download link written exactly as a workspace link, for example `[Download process-expense-claims.md](workspace:output/process-expense-claims.md)`; and one line saying the file is also in the Server Files panel under `output/`.
+
+## Hand-offs
+
+- Requirements for the to-be changes: `write-product-requirements`, carrying the BR and TO IDs.
+- A rule change against an existing requirement baseline: `analyze-requirement-change`.
+- Writing the result into a bundle: `collect_requirements_to_bundle`.
+
+## Provenance
+
+EFP-authored BA method. Structure draws on the journey mapping and PRD references in alirezarezvani/claude-skills (MIT) and on the process-mapper skill there for the working-versus-waiting time view; the closest upstream analogues are listed in `README.md` next to this file.

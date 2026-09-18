@@ -1,63 +1,63 @@
-# 产品发现分析草稿
+# Discovery document template
 
-仅填写已有材料支持的事实；未知写“未知”，建议与假设显式标注。按任务范围删去无关章节。此模板用于生成工作产物，不代表研究或实验已经执行。
+Fill in only what the material supports. Write `Unknown` for missing values; label suggestions and assumptions. Delete sections the task does not need. This document records analysis and plans; it does not mean research or tests were run.
 
-## 决策背景
+## Decision context
 
-- 产品/范围：
-- 目标用户与场景：
-- 本次要支持的决策：
-- 业务约束与决策窗口：
-- 当前建议及成立条件：
+- Product / scope:
+- Target users and situation:
+- Decision this document supports:
+- Business constraints and decision window:
+- Current recommendation and the conditions it depends on:
 
-## 证据台账
+## Evidence log
 
-| E 编号 | 来源与具体定位 | 日期 | 用户群/样本及去重口径 | 直接观察 | 局限/矛盾 |
+| E ID | Source and exact location | Date | Segment / sample and deduplication | Direct observation | Limits / contradictions |
 |---|---|---|---|---|---|
-| E-01 | 待填写 | 未知 | 未知 | 待填写 | 待填写 |
+| E-01 | | Unknown | Unknown | | |
 
-## 问题与期望结果
+## Problem and expected outcome
 
-| 用户/触发场景 | 当前行为与替代办法 | 阻碍及后果 | 支持/反对证据 | 推断或假设 |
+| User / trigger | Current behaviour and workarounds | Obstacle and consequence | Supporting / contradicting evidence | Inference or assumption |
 |---|---|---|---|---|
-| 待填写 | 待填写 | 待填写 | E 编号 | 待填写 |
+| | | | E IDs | |
 
-期望改变：用户结果；业务关联；观测指标；已知基线；拟议目标及依据。基线与目标缺失时保留未知。
+Expected change: user outcome; business link; observed metric; known baseline; proposed target and its basis. Keep baseline and target `Unknown` when the material does not give them.
 
-## 机会与解法
+## Opportunities and solutions
 
-| O 编号 | 用户机会 | 证据 | 影响与覆盖范围 | 优先研究的理由/不确定性 |
+| O ID | User opportunity | Evidence | Impact and reach | Why research it first / uncertainty |
 |---|---|---|---|---|
-| O-01 | 待填写 | E 编号 | 未知 | 待填写 |
+| O-01 | | E IDs | Unknown | |
 
-| S 编号 | 关联机会 | 解法 | 取舍/依赖 | 关键假设 A 编号 | 建议与暂缓理由 |
+| S ID | Opportunity | Solution | Trade-offs / dependencies | Key assumptions (A IDs) | Recommendation and reason to defer |
 |---|---|---|---|---|---|
-| S-01 | O 编号 | 待填写 | 待填写 | A 编号 | 待填写 |
+| S-01 | O IDs | | | A IDs | |
 
-## 假设与实验卡
+## Assumption test cards
 
-按关键假设重复此卡：
+Repeat per key assumption:
 
-- A 编号与假设：
-- 风险类型、关联 O/S 编号：
-- 支持证据、反证和仍未知的部分：
-- 检验方法、对象与招募/选择依据：
-- 观测行为与指标口径：
-- 所需样本、时间、负责人：未知项保留未知。
-- 成功判据、否定判据及依据：未达成一致的阈值标“建议”。
-- 护栏与停止条件：
-- 结果不足/相互矛盾时怎样继续：
-- 状态：计划中 / 有结果待解释 / 支持 / 不支持 / 不可判定。
-- 实际结果及证据：没有执行结果时填“不适用：计划中”。
+- A ID and assumption:
+- Risk type; linked O/S IDs:
+- Supporting evidence, counter-evidence, still unknown:
+- Method, participants, recruitment or selection basis:
+- Observed behaviour and metric definition:
+- Sample, time, owner (Unknown where not supplied):
+- Success and failure criteria and their basis (unagreed thresholds are `suggested`):
+- Guardrails and stop conditions:
+- Next step when results are insufficient or contradictory:
+- Status: Planned / Results pending interpretation / Supported / Not supported / Inconclusive
+- Actual result and evidence: `Not applicable: planned` when nothing was run
 
-## 访谈提纲（需要新研究时）
+## Interview guide (when new research is needed)
 
-研究问题与将影响的决策 → 最近一次实际经历 → 操作步骤 → 障碍及绕行 → 现有投入与优先级 → 追问与记录字段。
+Research question and the decision it informs -> last real occurrence -> steps taken -> obstacles and workarounds -> current investment and priority -> follow-ups and fields to record.
 
-## 决策与交接
+## Decision and hand-off
 
-| 建议动作 | 依据 E/O/S/A | 未决问题 | 建议负责人 | 更新条件 |
+| Recommended action | Basis (E/O/S/A) | Open questions | Suggested owner | Revisit when |
 |---|---|---|---|---|
-| 待填写 | 待填写 | 待填写 | 未知 | 待填写 |
+| | | | Unknown | |
 
-交付状态：分析草稿。关联需求或 bundle 路径仅在用户提供时列出；不声称已写入。
+Status: analysis draft. List a requirement or bundle path only when the member supplied it; nothing was written there.
