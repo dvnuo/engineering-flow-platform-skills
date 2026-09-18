@@ -2,6 +2,29 @@
 
 This repository is the standalone skills source for Engineering Flow Platform (EFP).
 
+## PM / BA skills
+
+Skills for Product Managers (PM) and Business Analysts (BA). Each one is prompt-only, works from what the member supplies (attached files, pasted text, or Jira, Confluence and GitHub sources fetched with the runtime CLIs) and delivers a reviewable Markdown document under `output/` with a download link. Skill text is English; the document and the reply follow the member's language.
+
+| Task | Skill | Deliverable |
+| --- | --- | --- |
+| Validate a user problem or opportunity | [product-discovery](product-discovery/skill.md) | `output/discovery-<slug>.md`: evidence log, opportunities, assumptions, test cards |
+| Rank candidates and sequence a roadmap | [prioritize-roadmap](prioritize-roadmap/skill.md) | `output/roadmap-<slug>.md`: reviewable ranking, trade-offs, outcome roadmap |
+| Define success metrics | [define-product-metrics](define-product-metrics/skill.md) | `output/metrics-<slug>.md`: metric dictionary, guardrails, instrumentation map |
+| Write or complete a PRD | [write-product-requirements](write-product-requirements/skill.md) | `output/prd-<slug>.md`: scope, requirements, acceptance criteria, sources |
+| Split delivery work | [break-down-user-stories](break-down-user-stories/skill.md) | `output/stories-<slug>.md` and `.csv`: epics, stories, acceptance criteria, coverage matrix |
+| Judge whether requirements can be handed over | [review-requirements-readiness](review-requirements-readiness/skill.md) | `output/readiness-<slug>.md`: verdict, findings, closing conditions |
+| Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md`: as-is and to-be process, decision tables, exceptions |
+| Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md`: diff, trace matrix, options, update list |
+
+Example: `/write-product-requirements Draft a PRD for invoice approval from the attached interview notes; separate facts from assumptions and list the acceptance criteria still to confirm.`
+
+In the native agent only `name` and `description` drive activation (a `/<skill-name>` line, the agent profile, or the model choosing the skill by description); the `triggers` list is documentation for the validator and Portal. The skills use `prompt_only` / `full` / `ask` metadata and need no upstream plugin or Python. `full` means the prompt and its resources are consumable by the OpenCode adapter, not that the output has been accepted in a deployed environment.
+
+They complement `collect_requirements_to_bundle` and `collect_research_notes_to_bundle`. Writing to a bundle or creating Jira issues still goes through those integrations and their confirmation flows: the stories CSV is the input for `jira_bulk_create_from_csv`, and the PRD keeps the `requirements.yaml` buckets so the bundle step can lift them.
+
+Selection basis, pinned upstream versions, licences and review scenarios: [docs/pm-ba-skills-adoption.md](docs/pm-ba-skills-adoption.md). `master` carries the full library; `business` carries the Business Assistant subset. Add new skills to both.
+
 ## Runtime mount model
 
 Portal checks out this repository into each agent runtime container at:
@@ -226,6 +249,14 @@ the root helper modules) stays on every branch.
 
 Skills on `business`:
 
+- `product-discovery`
+- `prioritize-roadmap`
+- `define-product-metrics`
+- `write-product-requirements`
+- `break-down-user-stories`
+- `review-requirements-readiness`
+- `analyze-business-process`
+- `analyze-requirement-change`
 - `collect_requirements_to_bundle`
 - `collect_research_notes_to_bundle`
 - `design_test_cases_from_bundle`
