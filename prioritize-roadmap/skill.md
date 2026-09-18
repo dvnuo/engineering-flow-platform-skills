@@ -74,4 +74,5 @@ Now/Next/Later is a planning order, not a commitment. List existing commitments 
 
 - Requirements for the items in Now: `write-product-requirements`.
 - Metric definitions for the outcomes: `define-product-metrics`.
+- A readout deck: the `pptx` skill, built from this file.
 - Changes to Jira ranking or fields go through the existing Jira flows, not through this skill.

@@ -2,7 +2,7 @@
 
 Skills for the **Business Assistant** in Engineering Flow Platform (EFP): requirements, planning and analysis work for Product Managers (PM) and Business Analysts (BA). Portal clones this branch into each Business Assistant runtime container at `/app/skills`, and the native agent discovers every `<skill-name>/skill.md` under it.
 
-`master` carries the full skill library. This branch is a curated subset for the native agent: no Python, no validator, no OpenCode metadata. Copy a skill directory from `master` when the role needs it; do not merge `master` into this branch.
+`master` carries the full skill library. This branch is a curated subset for the native agent: no repository tooling, no `skill.py` executors, no OpenCode metadata. A skill may ship its own scripts that the agent runs through the shell, as `pptx` does. Copy a skill directory from `master` when the role needs it; do not merge `master` into this branch.
 
 ## Skills
 
@@ -16,6 +16,7 @@ Skills for the **Business Assistant** in Engineering Flow Platform (EFP): requir
 | Judge whether requirements can be handed over | [review-requirements-readiness](review-requirements-readiness/skill.md) | `output/readiness-<slug>.md` |
 | Map a business process and its rules | [analyze-business-process](analyze-business-process/skill.md) | `output/process-<slug>.md` |
 | Assess a requirement change | [analyze-requirement-change](analyze-requirement-change/skill.md) | `output/change-<slug>.md` |
+| Build a PowerPoint deck from a request or source material | [pptx](pptx/skill.md) | `output/<slug>.pptx`, built by its `scripts/build_deck.py` (python-pptx is in the runtime image) |
 | Create Jira issues from a CSV | [jira-bulk-create-from-csv](jira-bulk-create-from-csv/skill.md) | Jira issues, after a mapping table and a dry run |
 | Work a Jira issue assigned through a Portal delegation | [delegation-jira-assignee](delegation-jira-assignee/skill.md) | Status comment body returned to Portal |
 | Answer a Jira mention delivered through a Portal delegation | [delegation-jira-mention](delegation-jira-mention/skill.md) | Status comment body returned to Portal |
@@ -47,4 +48,4 @@ Example: `/write-product-requirements Draft a PRD for invoice approval from the 
 
 After a change on this branch, either update the assistant type's skill branch or version in Portal, or restart the Kubernetes deployment so `/app/skills` is cloned again. Merging alone does not update running agents.
 
-CI checks that every `<skill-name>/skill.md` has a frontmatter `name` equal to its directory, a `description`, no duplicate names, and no Chinese text in the skill body.
+CI checks that every `<skill-name>/skill.md` has a frontmatter `name` equal to its directory, a `description`, no duplicate names, and no Chinese text in the skill body outside a worked example section.
