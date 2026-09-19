@@ -65,7 +65,7 @@ Never paste raw events into the report. Quote one representative line per signat
 
 | `error.code` | Meaning | What to do |
 |---|---|---|
-| `spl_blocked` | the query used a side-effecting command (`delete`, `outputlookup`, `collect`, `sendemail`, `script`, and similar) | reshape the query; never work around the block |
+| `spl_blocked` | the query used a side-effecting command (`delete`, `outputlookup`, `collect`, `sendemail`, `script`, `dump`, and similar), or called a backtick macro whose body cannot be checked | reshape the query, or write the macro out in full; never work around the block |
 | `instance_required` | several Splunk configured, none chosen | pick from `data.candidates`, pass `--instance` |
 | `config_missing` / `auth_failed` | no usable Splunk credentials in the runtime profile | report the gap; stop |
 | `permission_denied` | the role cannot read that index | record as UNKNOWN evidence; `index list` shows the readable ones |

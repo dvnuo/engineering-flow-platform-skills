@@ -88,7 +88,7 @@ Never paste raw events. One representative line per signature, with identifiers,
 
 ## Safety
 
-- Never run side-effecting SPL (`delete`, `outputlookup`, `collect`, `sendemail`, `script`, and similar); the CLI rejects them with `spl_blocked`, and the answer is to reshape the query, not to work around the block.
+- Never run side-effecting SPL (`delete`, `outputlookup`, `collect`, `sendemail`, `script`, `dump`, and similar); the CLI rejects them with `spl_blocked`, and the answer is to reshape the query, not to work around the block. A backtick macro is refused the same way, because Splunk expands it after the check: write the search out in full.
 - Never search without `--earliest` and `--latest`, and never with `--earliest 0` ("all time").
 - Cap every search with `--count` and summarize; do not dump thousands of rows into the conversation.
 - Treat events as personal data until proven otherwise; redact before quoting.
